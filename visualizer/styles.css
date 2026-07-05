@@ -207,6 +207,22 @@ textarea:focus-visible {
   min-height: auto;
 }
 
+.connection-toolbar {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(140px, 180px) minmax(140px, 180px) auto;
+  gap: 10px;
+  align-items: end;
+  padding: 10px;
+  border: 1px solid rgba(31, 95, 139, 0.22);
+  border-radius: var(--radius-sm);
+  background: rgba(232, 243, 249, 0.78);
+}
+
+.connection-toolbar[hidden] {
+  display: none;
+}
+
 .summary-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

@@ -4,6 +4,7 @@ const DOMAIN_ORDER = ["User Access", "Identity", "Network Security", "Platform",
 const VALID_CRITICALITIES = ["High", "Medium", "Low"];
 const VALID_DIAGRAM_DEFAULTS = ["core", "secondary"];
 const VALID_FLOW_DIRECTIONS = ["input", "output", "bidirectional"];
+const REMOVED_COMPONENT_NAMES = new Set(["COTS Batch Tool"]);
 const STORAGE_KEY = "infra-integration-map-v2-state";
 
 const sample = {
@@ -15,7 +16,6 @@ CMP-004,FortiGate,Network Security,NetworkTeam,境界防御と通信制御
 CMP-005,Cisco Switch,Network Security,NetworkTeam,L2/L3ネットワークとSyslog送信
 CMP-006,VMware vSphere,Platform,ServerTeam,仮想基盤と仮想サーバ管理
 CMP-007,Splunk,Security Ops,OpsTeam,ログ収集と監視アラート
-CMP-008,COTS Batch Tool,Operations,OpsTeam,定期運用ジョブと外部製品連携
 CMP-009,Trellix HX,Security Ops,SecOps,EDRとインシデント調査
 CMP-010,SKYSEA,Operations,OpsTeam,資産管理と端末運用管理
 CMP-011,OpenFreeRadius,Identity,IdentityTeam,RADIUS認証基盤
@@ -40,10 +40,8 @@ INT-004,VMware vSphere,Active Directory,input,認証,仮想サーバのドメイ
 INT-005,Cisco Switch,Splunk,output,ログ連携,ネットワーク機器ログ集約,ネットワーク機器ログの集約,Syslog,UDP,514,IT,Medium,OpsTeam,完了,,OpsTeam,NetworkTeam,Open,Splunk検索結果と送信元ホスト確認,Splunkインデックス検索,2026-06-30,障害解析に必要なログが欠損,secondary,送信元ホストと時刻を確認
 INT-006,FortiGate,Splunk,output,監視,セキュリティイベント監視,セキュリティログ監視,Syslog,UDP,514,IT,High,SecOps,要再試験,INT-005,SecOps,NetworkTeam,Open,Splunkアラート履歴とイベント検索結果,Splunk相関検索とアラート履歴,2026-07-01,重大イベントの検知遅延または未検知,secondary,重大イベントの検知とアラートを確認
 INT-007,Outlook,Active Directory,input,認証,利用者認証とアドレス帳参照,利用者認証とアドレス帳参照,Kerberos/LDAP,TCP,88/389,IT,Medium,IdentityTeam,ケース作成済,INT-001,UserSupportTeam,IdentityTeam,Open,認証成功ログと属性参照結果,認証ログと属性参照結果画面,2026-06-24,利用者認証または宛先解決に失敗,core,資格情報と属性参照を確認
-INT-008,COTS Batch Tool,SharePoint,output,ファイル連携,夜間処理後の運用ファイル格納,運用ファイルの格納と参照,HTTPS/API,TCP,443,IT,Medium,OpsTeam,実施中,INT-001,OpsTeam,M365Team,Open,格納ファイル一覧と処理ログ,SharePointファイル一覧とバッチログ,2026-06-29,運用ファイルの欠損または権限誤り,core,夜間処理後の格納結果を確認
-INT-009,COTS Batch Tool,Splunk,output,ログ連携,ジョブログ監視,ジョブログの監視連携,File forwarder,TCP,9997,IT,Medium,OpsTeam,ケース作成済,INT-008,OpsTeam,SecOps,Open,Splunk検索結果と異常終了アラート履歴,Splunk取り込み状況とアラート履歴,2026-06-25,ジョブ異常の検知遅延,secondary,異常終了ログの検知を確認
 INT-010,Virtru,Outlook,output,通知,保護付きメール送受信,メールでの保護連携,Mail add-in/API,TCP,443,IT,High,M365Team,ケース作成済,INT-001,UserSupportTeam,M365Team,Open,暗号化メール画面と送受信ログ,Outlook送信履歴とVirtru監査ログ,2026-07-02,保護付きメールが送受信できない,core,メールでの連携のみ仮登録
-INT-011,NextLabs,SharePoint,output,ファイル連携,共有ファイルの保護制御,ファイル共有時の保護連携,Policy enforcement/API,TCP,443,IT,High,M365Team,ケース作成済,INT-008,M365Team,M365Team,Open,保護ポリシー適用結果と共有ログ,SharePoint共有履歴とポリシー監査ログ,2026-07-02,共有ファイルに保護ポリシーが適用されない,core,ファイル共有での連携のみ仮登録
+INT-011,NextLabs,SharePoint,output,ファイル連携,共有ファイルの保護制御,ファイル共有時の保護連携,Policy enforcement/API,TCP,443,IT,High,M365Team,ケース作成済,,M365Team,M365Team,Open,保護ポリシー適用結果と共有ログ,SharePoint共有履歴とポリシー監査ログ,2026-07-02,共有ファイルに保護ポリシーが適用されない,core,ファイル共有での連携のみ仮登録
 INT-012,OpenFreeRadius,Active Directory,input,認証,ネットワーク認証の利用者照合,RADIUS認証基盤の利用者照合,RADIUS/LDAP,UDP/TCP,1812/389,IT,High,IdentityTeam,ケース作成済,,NetworkTeam,IdentityTeam,Open,認証成功ログとAD参照結果,Radius認証ログとAD監査ログ,2026-07-02,利用者認証が成立せずネットワーク接続できない,core,RADIUS認証バックエンドの仮連携
 INT-013,SKYSEA,Active Directory,input,認証,端末資産と利用者情報の関連付け,端末管理用の利用者情報参照,LDAP,TCP,389,IT,Medium,OpsTeam,ケース作成済,,OpsTeam,IdentityTeam,Open,端末台帳と利用者情報の参照結果,SKYSEA操作ログとAD参照ログ,2026-07-02,端末利用者情報が突合できない,core,資産管理向けの仮連携
 INT-014,SKYSEA,Splunk,output,ログ連携,端末操作ログの集約,端末管理ログの監視連携,Syslog/API,TCP,443/514,IT,Medium,OpsTeam,ケース作成済,INT-013,OpsTeam,SecOps,Open,Splunk検索結果と操作ログ,SKYSEA監査ログとSplunk検索,2026-07-02,端末操作ログが集約されない,secondary,監視用途の仮連携
@@ -80,11 +78,6 @@ INT-006,MON,監視,Yes,重大イベントをアラートで検知する必要が
 INT-006,PERF,性能,Yes,ピーク時転送遅延が監視遅延に影響するため,PLANNED,TC-006-003,Stress,Yes,,未取得,転送遅延メトリクス,2026-07-01,,SecOps,ピーク時転送遅延
 INT-007,AUTH,認証,Yes,Outlook認証がAD連携に依存するため,READY,TC-007-001,Normal,Yes,,未取得,認証成功ログ,2026-06-24,,IdentityTeam,Outlook認証
 INT-007,DATA,データ連携,Yes,アドレス帳属性参照が利用者操作に影響するため,PLANNED,TC-007-002,Normal,Yes,,未取得,属性参照結果画面,2026-06-24,,IdentityTeam,アドレス帳属性参照
-INT-008,DATA,データ連携,Yes,運用ファイルがSharePointへ格納される必要がある,READY,TC-008-001,Normal,Yes,,未取得,SharePointファイル一覧,2026-06-29,,OpsTeam,ファイル格納結果
-INT-008,AUTHZ,認可,Yes,格納先権限が運用ファイルの閲覧範囲を決めるため,PLANNED,TC-008-002,Abnormal,Yes,,未取得,権限確認画面,2026-06-29,,OpsTeam,格納先権限
-INT-008,OPS,運用,Yes,夜間処理後の確認手順を明確化するため,PLANNED,TC-008-003,Recovery,Yes,,未取得,夜間処理ログ,2026-06-29,,OpsTeam,夜間処理後の確認手順
-INT-009,DATA,データ連携,Yes,ジョブログがSplunkへ取り込まれる必要がある,READY,TC-009-001,Normal,Yes,,未取得,Splunk取り込み状況,2026-06-25,,OpsTeam,ジョブログ取り込み
-INT-009,MON,監視,Yes,異常終了をアラートで検知する必要がある,PLANNED,TC-009-002,Abnormal,Yes,,未取得,異常終了アラート履歴,2026-06-25,,OpsTeam,異常終了アラート
 INT-010,DATA,データ連携,Yes,保護付きメールが送受信できる必要がある,PLANNED,TC-010-001,Normal,Yes,,未取得,Virtru送信監査ログ,2026-07-02,,M365Team,保護付きメール送受信
 INT-010,AUTHZ,認可,Yes,外部送信時の保護ポリシー適用を確認する必要がある,PLANNED,TC-010-002,Abnormal,Yes,,未取得,ポリシー適用結果画面,2026-07-02,,M365Team,外部送信時の保護制御
 INT-011,DATA,データ連携,Yes,共有ファイルに保護ポリシーが付与される必要がある,PLANNED,TC-011-001,Normal,Yes,,未取得,共有ファイル属性と監査ログ,2026-07-02,,M365Team,共有ファイル保護
@@ -134,6 +127,7 @@ let state = {
   editMode: false,
   pendingConnectionFrom: "",
   pendingConnectionDirection: "output",
+  pendingConnectionDiagramDefault: "core",
   editorMode: "",
   draggingComponentName: "",
   dragMoved: false,
@@ -162,6 +156,10 @@ const elements = {
   integrationTypeFilter: document.getElementById("integrationTypeFilter"),
   openOnlyFilter: document.getElementById("openOnlyFilter"),
   showSecondaryFilter: document.getElementById("showSecondaryFilter"),
+  pendingConnectionControls: document.getElementById("pendingConnectionControls"),
+  pendingConnectionDirectionSelect: document.getElementById("pendingConnectionDirectionSelect"),
+  pendingConnectionDiagramSelect: document.getElementById("pendingConnectionDiagramSelect"),
+  cancelPendingConnectionToolbarButton: document.getElementById("cancelPendingConnectionToolbarButton"),
   summaryStrip: document.getElementById("summaryStrip"),
   mapSvg: document.getElementById("mapSvg"),
   mapPanel: document.querySelector(".map-panel"),
@@ -203,6 +201,9 @@ elements.ownerFilter.addEventListener("change", render);
 elements.integrationTypeFilter.addEventListener("change", render);
 elements.openOnlyFilter.addEventListener("change", render);
 elements.showSecondaryFilter.addEventListener("change", render);
+elements.pendingConnectionDirectionSelect.addEventListener("change", updatePendingConnectionControls);
+elements.pendingConnectionDiagramSelect.addEventListener("change", updatePendingConnectionControls);
+elements.cancelPendingConnectionToolbarButton.addEventListener("click", cancelPendingConnection);
 elements.closeDetailModalButton.addEventListener("click", closeDetailModal);
 elements.detailModalBackdrop.addEventListener("click", closeDetailModal);
 elements.closeProposalModalButton.addEventListener("click", closeProposalModal);
@@ -238,9 +239,11 @@ async function loadSample(preferSaved = false) {
   }
 
   state = {
-    components: parseCsv(sample.components),
-    integrations: parseCsv(sample.integrations),
-    coverage: parseCsv(sample.coverage),
+    ...sanitizeLoadedData({
+      components: parseCsv(sample.components),
+      integrations: parseCsv(sample.integrations),
+      coverage: parseCsv(sample.coverage),
+    }),
     proposalReview: null,
     proposalModalOpen: false,
     selectedIntegrationId: "INT-006",
@@ -248,6 +251,7 @@ async function loadSample(preferSaved = false) {
     editMode: false,
     pendingConnectionFrom: "",
     pendingConnectionDirection: "output",
+    pendingConnectionDiagramDefault: "core",
     editorMode: "",
     detailModalOpen: false,
   };
@@ -266,9 +270,11 @@ async function loadBundledCsv() {
     ]);
 
       state = {
-        components: parseCsv(componentsText),
-        integrations: parseCsv(integrationsText),
-        coverage: parseCsv(coverageText),
+        ...sanitizeLoadedData({
+          components: parseCsv(componentsText),
+          integrations: parseCsv(integrationsText),
+          coverage: parseCsv(coverageText),
+        }),
         proposalReview: null,
         proposalModalOpen: false,
         selectedIntegrationId: "INT-006",
@@ -276,6 +282,7 @@ async function loadBundledCsv() {
       editMode: false,
       pendingConnectionFrom: "",
       pendingConnectionDirection: "output",
+      pendingConnectionDiagramDefault: "core",
       editorMode: "",
       detailModalOpen: false,
     };
@@ -309,9 +316,11 @@ async function loadUploadedFiles() {
   ]);
 
   state = {
-    components: parseCsv(componentsText),
-    integrations: parseCsv(integrationsText),
-    coverage: parseCsv(coverageText),
+    ...sanitizeLoadedData({
+      components: parseCsv(componentsText),
+      integrations: parseCsv(integrationsText),
+      coverage: parseCsv(coverageText),
+    }),
     proposalReview: null,
     proposalModalOpen: false,
     selectedIntegrationId: "",
@@ -319,6 +328,7 @@ async function loadUploadedFiles() {
     editMode: false,
     pendingConnectionFrom: "",
     pendingConnectionDirection: "output",
+    pendingConnectionDiagramDefault: "core",
     editorMode: "",
     detailModalOpen: false,
   };
@@ -505,17 +515,173 @@ function renderMap(integrations, baselineIntegrations = integrations) {
     .map((domain) => `<text x="${domainX.get(domain)}" y="42" text-anchor="middle" class="domain-label">${domain}</text>`)
     .join("");
 
-  const edges = integrations
-    .map((row, index) => {
-      const from = positions.get(row.from_component);
-      const to = positions.get(row.to_component);
-      const fromMetrics = nodeMetrics.get(row.from_component);
-      const toMetrics = nodeMetrics.get(row.to_component);
-      if (!from || !to) return "";
-      if (!fromMetrics || !toMetrics) return "";
+  const routePlans = integrations.map((row, index) => {
+    const from = positions.get(row.from_component);
+    const to = positions.get(row.to_component);
+    const fromMetrics = nodeMetrics.get(row.from_component);
+    const toMetrics = nodeMetrics.get(row.to_component);
+    if (!from || !to || !fromMetrics || !toMetrics) {
+      return null;
+    }
 
-      const midX = (from.x + to.x) / 2;
-      const bendY = Math.min(from.y, to.y) - 54 - (index % 3) * 14;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const horizontalGap = Math.max(0, Math.abs(dx) - fromMetrics.halfWidth - toMetrics.halfWidth);
+    const verticalGap = Math.max(0, Math.abs(dy) - fromMetrics.halfHeight - toMetrics.halfHeight);
+    const orientation = horizontalGap === verticalGap
+      ? Math.abs(dx) >= Math.abs(dy) ? "horizontal" : "vertical"
+      : horizontalGap > verticalGap ? "horizontal" : "vertical";
+    const horizontalDirection = dx >= 0 ? 1 : -1;
+    const verticalDirection = dy >= 0 ? 1 : -1;
+    return {
+      row,
+      index,
+      from,
+      to,
+      fromMetrics,
+      toMetrics,
+      orientation,
+      horizontalDirection,
+      verticalDirection,
+      fromSide: orientation === "horizontal" ? (horizontalDirection > 0 ? "right" : "left") : (verticalDirection > 0 ? "bottom" : "top"),
+      toSide: orientation === "horizontal" ? (horizontalDirection > 0 ? "left" : "right") : (verticalDirection > 0 ? "top" : "bottom"),
+    };
+  });
+
+  const endpointGroups = new Map();
+  routePlans.forEach((plan) => {
+    if (!plan) return;
+    const fromKey = `${plan.row.from_component}:${plan.fromSide}`;
+    const toKey = `${plan.row.to_component}:${plan.toSide}`;
+    if (!endpointGroups.has(fromKey)) endpointGroups.set(fromKey, []);
+    if (!endpointGroups.has(toKey)) endpointGroups.set(toKey, []);
+    endpointGroups.get(fromKey).push({ plan, anchor: "from", peerY: plan.to.y, peerX: plan.to.x });
+    endpointGroups.get(toKey).push({ plan, anchor: "to", peerY: plan.from.y, peerX: plan.from.x });
+  });
+
+  const endpointOffsets = new Map();
+  endpointGroups.forEach((items, groupKey) => {
+    items
+      .sort((a, b) => {
+        const axis = groupKey.endsWith(":left") || groupKey.endsWith(":right") ? "peerY" : "peerX";
+        return a[axis] - b[axis] || a.peerX - b.peerX || a.peerY - b.peerY || a.plan.row.integration_id.localeCompare(b.plan.row.integration_id, "ja");
+      })
+      .forEach((item, itemIndex) => {
+        const offsetIndex = itemIndex - (items.length - 1) / 2;
+        endpointOffsets.set(`${item.plan.row.integration_id}:${item.anchor}`, offsetIndex * 12);
+      });
+  });
+
+  const occupiedHorizontalLanes = [];
+  const occupiedVerticalLanes = [];
+  routePlans
+    .filter(Boolean)
+    .sort((a, b) => Math.abs(b.to.y - b.from.y) - Math.abs(a.to.y - a.from.y) || a.index - b.index)
+    .forEach((plan) => {
+      const anchorOffset = endpointOffsets.get(`${plan.row.integration_id}:from`) || 0;
+      const peerOffset = endpointOffsets.get(`${plan.row.integration_id}:to`) || 0;
+      const candidateOffsets = [0, 24, -24, 48, -48, 72, -72, 96, -96];
+      if (plan.orientation === "horizontal") {
+        const startX = plan.from.x + plan.fromMetrics.halfWidth * plan.horizontalDirection;
+        const endX = plan.to.x - plan.toMetrics.halfWidth * plan.horizontalDirection;
+        const startY = plan.from.y + anchorOffset;
+        const endY = plan.to.y + peerOffset;
+        const baseLaneX = (startX + endX) / 2 + plan.horizontalDirection * 28;
+        const topY = Math.min(startY, endY) - 18;
+        const bottomY = Math.max(startY, endY) + 18;
+        const sourceGuard = getNodeGuard(plan.from, plan.fromMetrics, 22);
+        const targetGuard = getNodeGuard(plan.to, plan.toMetrics, 22);
+        const startLaneIsOutsideSource =
+          plan.fromSide === "left"
+            ? (candidateLaneX) => candidateLaneX < sourceGuard.left
+            : (candidateLaneX) => candidateLaneX > sourceGuard.right;
+        const terminalLaneIsOutsideTarget =
+          plan.toSide === "left"
+            ? (candidateLaneX) => candidateLaneX < targetGuard.left
+            : (candidateLaneX) => candidateLaneX > targetGuard.right;
+        let laneX = baseLaneX;
+        let foundLane = false;
+        for (const candidateOffset of candidateOffsets) {
+          const candidateLaneX = baseLaneX + candidateOffset;
+          const collision = occupiedVerticalLanes.some(
+            (lane) => Math.abs(lane.lane - candidateLaneX) < 18 && !(bottomY < lane.rangeStart || topY > lane.rangeEnd)
+          );
+          if (!collision && startLaneIsOutsideSource(candidateLaneX) && terminalLaneIsOutsideTarget(candidateLaneX)) {
+            laneX = candidateLaneX;
+            foundLane = true;
+            break;
+          }
+        }
+        if (!foundLane) {
+          const guardedLeft = Math.max(sourceGuard.right + 12, targetGuard.left - 24);
+          const guardedRight = Math.min(sourceGuard.left - 12, targetGuard.right + 24);
+          laneX = plan.fromSide === "right" && plan.toSide === "left" ? guardedLeft : guardedRight;
+        }
+        occupiedVerticalLanes.push({ lane: laneX, rangeStart: topY, rangeEnd: bottomY });
+        plan.labelX = laneX;
+        plan.labelY = topY + (bottomY - topY) / 2 - 10;
+        plan.pathData = [
+          `M ${startX} ${startY}`,
+          `L ${startX + plan.horizontalDirection * 18} ${startY}`,
+          `L ${laneX} ${startY}`,
+          `L ${laneX} ${endY}`,
+          `L ${endX - plan.horizontalDirection * 18} ${endY}`,
+          `L ${endX} ${endY}`,
+        ].join(" ");
+      } else {
+        const startX = plan.from.x + anchorOffset;
+        const endX = plan.to.x + peerOffset;
+        const startY = plan.from.y + plan.fromMetrics.halfHeight * plan.verticalDirection;
+        const endY = plan.to.y - plan.toMetrics.halfHeight * plan.verticalDirection;
+        const baseLaneY = (startY + endY) / 2 + plan.verticalDirection * 28;
+        const leftX = Math.min(startX, endX) - 18;
+        const rightX = Math.max(startX, endX) + 18;
+        const sourceGuard = getNodeGuard(plan.from, plan.fromMetrics, 22);
+        const targetGuard = getNodeGuard(plan.to, plan.toMetrics, 22);
+        const startLaneIsOutsideSource =
+          plan.fromSide === "top"
+            ? (candidateLaneY) => candidateLaneY < sourceGuard.top
+            : (candidateLaneY) => candidateLaneY > sourceGuard.bottom;
+        const terminalLaneIsOutsideTarget =
+          plan.toSide === "top"
+            ? (candidateLaneY) => candidateLaneY < targetGuard.top
+            : (candidateLaneY) => candidateLaneY > targetGuard.bottom;
+        let laneY = baseLaneY;
+        let foundLane = false;
+        for (const candidateOffset of candidateOffsets) {
+          const candidateLaneY = baseLaneY + candidateOffset;
+          const collision = occupiedHorizontalLanes.some(
+            (lane) => Math.abs(lane.lane - candidateLaneY) < 18 && !(rightX < lane.rangeStart || leftX > lane.rangeEnd)
+          );
+          if (!collision && startLaneIsOutsideSource(candidateLaneY) && terminalLaneIsOutsideTarget(candidateLaneY)) {
+            laneY = candidateLaneY;
+            foundLane = true;
+            break;
+          }
+        }
+        if (!foundLane) {
+          const guardedTop = Math.max(sourceGuard.bottom + 12, targetGuard.top - 24);
+          const guardedBottom = Math.min(sourceGuard.top - 12, targetGuard.bottom + 24);
+          laneY = plan.fromSide === "bottom" && plan.toSide === "top" ? guardedTop : guardedBottom;
+        }
+        occupiedHorizontalLanes.push({ lane: laneY, rangeStart: leftX, rangeEnd: rightX });
+        plan.labelX = leftX + (rightX - leftX) / 2;
+        plan.labelY = laneY - 10;
+        plan.pathData = [
+          `M ${startX} ${startY}`,
+          `L ${startX} ${startY + plan.verticalDirection * 18}`,
+          `L ${startX} ${laneY}`,
+          `L ${endX} ${laneY}`,
+          `L ${endX} ${endY - plan.verticalDirection * 18}`,
+          `L ${endX} ${endY}`,
+        ].join(" ");
+      }
+    });
+
+  const edges = integrations
+    .map((row) => {
+      const plan = routePlans.find((item) => item?.row.integration_id === row.integration_id);
+      if (!plan) return "";
         const selected = state.selectedIntegrationId === row.integration_id;
         const relatedToComponent = !state.selectedComponentName || isRelatedToSelectedComponent(row);
         const diagramDefault = getDiagramDefault(row);
@@ -525,12 +691,12 @@ function renderMap(integrations, baselineIntegrations = integrations) {
         const widthValue = selected ? 5.4 : relatedToComponent ? (row.riskCount > 0 ? 3.4 : 2.6) : 1.4;
         const opacity = selected ? 1 : relatedToComponent ? 0.92 : 0.16;
         const dangerMark = selected && row.riskCount > 0
-        ? `<circle cx="${midX}" cy="${bendY - 18}" r="9" fill="#b42318"></circle>
-           <text x="${midX}" y="${bendY - 14}" text-anchor="middle" fill="#fff" font-size="10" font-weight="900">${row.riskCount}</text>`
+        ? `<circle cx="${plan.labelX}" cy="${plan.labelY - 18}" r="9" fill="#b42318"></circle>
+           <text x="${plan.labelX}" y="${plan.labelY - 14}" text-anchor="middle" fill="#fff" font-size="10" font-weight="900">${row.riskCount}</text>`
         : "";
         const edgeLabel = selected ? [row.integration_id, row.integration_type].filter(Boolean).join(" ") : "";
           const edgeLabelMarkup = selected
-            ? `<text x="${midX}" y="${bendY - 28}" text-anchor="middle">${escapeHtml(edgeLabel)}</text>`
+            ? `<text x="${plan.labelX}" y="${plan.labelY - 28}" text-anchor="middle">${escapeHtml(edgeLabel)}</text>`
             : "";
           const markerRef = `url(#arrow-${secondary ? "secondary" : "core"}-${flowDirection})`;
         const markerStart = flowDirection === "input" || flowDirection === "bidirectional" ? ` marker-start="${markerRef}"` : "";
@@ -538,8 +704,8 @@ function renderMap(integrations, baselineIntegrations = integrations) {
 
         return `
           <g class="edge ${selected ? "edge-selected" : ""} ${secondary ? "edge-secondary" : "edge-core"} ${relatedToComponent ? "edge-related" : "edge-muted"}" data-id="${escapeHtml(row.integration_id)}" tabindex="0">
-            <path d="M ${from.x + fromMetrics.halfWidth} ${from.y} C ${midX} ${bendY}, ${midX} ${bendY}, ${to.x - toMetrics.halfWidth} ${to.y}"
-            stroke="${color}" stroke-width="${widthValue}" opacity="${opacity}"${markerStart}${markerEnd}></path>
+            <path d="${plan.pathData}"
+            stroke="${color}" stroke-width="${widthValue}" opacity="${opacity}" stroke-linejoin="round" stroke-linecap="round"${markerStart}${markerEnd}></path>
             ${edgeLabelMarkup}
             ${dangerMark}
           </g>
@@ -603,10 +769,17 @@ function renderMap(integrations, baselineIntegrations = integrations) {
           if (state.pendingConnectionFrom === name) {
             state.pendingConnectionFrom = "";
             state.pendingConnectionDirection = "output";
+            state.pendingConnectionDiagramDefault = "core";
           } else {
-            createIntegrationBetween(state.pendingConnectionFrom, name, state.pendingConnectionDirection);
+            createIntegrationBetween(
+              state.pendingConnectionFrom,
+              name,
+              state.pendingConnectionDirection,
+              state.pendingConnectionDiagramDefault
+            );
             state.pendingConnectionFrom = "";
             state.pendingConnectionDirection = "output";
+            state.pendingConnectionDiagramDefault = "core";
             state.selectedComponentName = "";
           }
         } else {
@@ -614,7 +787,8 @@ function renderMap(integrations, baselineIntegrations = integrations) {
           state.selectedIntegrationId = "";
         }
         state.editorMode = "";
-        state.detailModalOpen = openDetail && Boolean(state.selectedComponentName || state.selectedIntegrationId);
+        state.detailModalOpen =
+          !state.pendingConnectionFrom && openDetail && Boolean(state.selectedComponentName || state.selectedIntegrationId);
         render();
       };
       node.addEventListener("click", () => focus(false));
@@ -839,6 +1013,10 @@ function renderPendingConnectionForm() {
           向き
           <select name="pending_flow_direction">${renderFlowDirectionOptions(normalizeFlowDirection(state.pendingConnectionDirection))}</select>
         </label>
+        <label>
+          図の扱い
+          <select name="pending_diagram_default">${renderSelectOptions(["core", "secondary"], normalizeDiagramDefault(state.pendingConnectionDiagramDefault))}</select>
+        </label>
       </div>
       <div class="detail-block">
         <div class="detail-label">操作方法</div>
@@ -1042,6 +1220,8 @@ function bindEditorPanelEvents() {
       if (!state.selectedComponentName) return;
       state.pendingConnectionFrom = state.selectedComponentName;
       state.pendingConnectionDirection = "output";
+      state.pendingConnectionDiagramDefault = "core";
+      state.detailModalOpen = false;
       render();
     });
     document.getElementById("resetComponentPositionButton")?.addEventListener("click", resetSelectedComponentPosition);
@@ -1198,10 +1378,20 @@ function renderControlState() {
   elements.startConnectionButton.textContent = state.pendingConnectionFrom
     ? `接続先を選択中: ${state.pendingConnectionFrom} (${getFlowDirectionLabel({ flow_direction: state.pendingConnectionDirection })})`
     : "線を引く";
+  elements.pendingConnectionControls.hidden = !state.pendingConnectionFrom;
+  elements.pendingConnectionDirectionSelect.value = normalizeFlowDirection(state.pendingConnectionDirection);
+  elements.pendingConnectionDiagramSelect.value = normalizeDiagramDefault(state.pendingConnectionDiagramDefault);
+}
+
+function updatePendingConnectionControls() {
+  state.pendingConnectionDirection = normalizeFlowDirection(elements.pendingConnectionDirectionSelect.value);
+  state.pendingConnectionDiagramDefault = normalizeDiagramDefault(elements.pendingConnectionDiagramSelect.value);
+  renderControlState();
 }
 
 function startNodeDrag(event, componentName) {
   if (!state.editMode || !componentName) return;
+  if (state.pendingConnectionFrom) return;
   event.preventDefault();
   state.draggingComponentName = componentName;
   state.dragMoved = false;
@@ -1243,6 +1433,7 @@ function toggleEditMode() {
   state.editMode = !state.editMode;
   state.pendingConnectionFrom = "";
   state.pendingConnectionDirection = "output";
+  state.pendingConnectionDiagramDefault = "core";
   state.editorMode = "";
   state.detailModalOpen = state.editMode && Boolean(state.selectedComponentName || state.selectedIntegrationId);
   render();
@@ -1262,12 +1453,15 @@ function toggleConnectionMode() {
   if (state.pendingConnectionFrom) {
     state.pendingConnectionFrom = "";
     state.pendingConnectionDirection = "output";
+    state.pendingConnectionDiagramDefault = "core";
+    state.detailModalOpen = true;
   } else {
     state.pendingConnectionFrom = state.selectedComponentName;
     state.pendingConnectionDirection = "output";
+    state.pendingConnectionDiagramDefault = "core";
+    state.detailModalOpen = false;
   }
   state.editorMode = "";
-  state.detailModalOpen = true;
   render();
 }
 
@@ -1399,6 +1593,7 @@ function savePendingConnectionSettings(event) {
   event.preventDefault();
   const formData = new FormData(event.currentTarget);
   state.pendingConnectionDirection = normalizeFlowDirection(formData.get("pending_flow_direction") || state.pendingConnectionDirection);
+  state.pendingConnectionDiagramDefault = normalizeDiagramDefault(formData.get("pending_diagram_default") || state.pendingConnectionDiagramDefault);
   state.detailModalOpen = true;
   render();
 }
@@ -1406,6 +1601,7 @@ function savePendingConnectionSettings(event) {
 function cancelPendingConnection() {
   state.pendingConnectionFrom = "";
   state.pendingConnectionDirection = "output";
+  state.pendingConnectionDiagramDefault = "core";
   state.detailModalOpen = true;
   render();
 }
@@ -1440,13 +1636,19 @@ async function importJson(event) {
   if (!file) return;
   const text = await file.text();
   const parsed = JSON.parse(text);
-  state.components = Array.isArray(parsed.components) ? parsed.components : [];
-  state.integrations = Array.isArray(parsed.integrations) ? parsed.integrations : [];
-  state.coverage = Array.isArray(parsed.coverage) ? parsed.coverage : [];
+  const sanitized = sanitizeLoadedData({
+    components: Array.isArray(parsed.components) ? parsed.components : [],
+    integrations: Array.isArray(parsed.integrations) ? parsed.integrations : [],
+    coverage: Array.isArray(parsed.coverage) ? parsed.coverage : [],
+  });
+  state.components = sanitized.components;
+  state.integrations = sanitized.integrations;
+  state.coverage = sanitized.coverage;
   state.selectedComponentName = "";
   state.selectedIntegrationId = state.integrations[0]?.integration_id || "";
   state.pendingConnectionFrom = "";
   state.pendingConnectionDirection = "output";
+  state.pendingConnectionDiagramDefault = "core";
   state.editorMode = "";
   state.detailModalOpen = false;
   hydrateOwnerFilter();
@@ -1964,7 +2166,7 @@ function closeProposalModal() {
   render();
 }
 
-function createIntegrationBetween(fromComponent, toComponent, flowDirection = "output") {
+function createIntegrationBetween(fromComponent, toComponent, flowDirection = "output", diagramDefault = "core") {
   const integrationId = nextId("INT", state.integrations.map((row) => row.integration_id));
   const integration = {
       integration_id: integrationId,
@@ -1989,7 +2191,7 @@ function createIntegrationBetween(fromComponent, toComponent, flowDirection = "o
     observability_point: "未設定",
     last_tested_at: "",
     failure_impact: "未設定",
-    diagram_default: "core",
+    diagram_default: normalizeDiagramDefault(diagramDefault),
     notes: "GUIで追加した連携",
   };
   state.integrations = [...state.integrations, integration];
@@ -2147,6 +2349,35 @@ function inferOwner(fromComponent, toComponent) {
   );
 }
 
+function sanitizeLoadedData(data) {
+  const components = (Array.isArray(data.components) ? data.components : []).filter(
+    (row) => !REMOVED_COMPONENT_NAMES.has(String(row.component_name || "").trim())
+  );
+  const validComponentNames = new Set(components.map((row) => String(row.component_name || "").trim()).filter(Boolean));
+  const removedIntegrationIds = new Set();
+  const integrations = (Array.isArray(data.integrations) ? data.integrations : [])
+    .filter((row) => {
+      const fromName = String(row.from_component || "").trim();
+      const toName = String(row.to_component || "").trim();
+      const keep = validComponentNames.has(fromName) && validComponentNames.has(toName);
+      if (!keep && row.integration_id) {
+        removedIntegrationIds.add(String(row.integration_id).trim());
+      }
+      return keep;
+    })
+    .map((row) => ({
+      ...row,
+      prerequisite_integration_id: removedIntegrationIds.has(String(row.prerequisite_integration_id || "").trim())
+        ? ""
+        : row.prerequisite_integration_id,
+    }));
+  const validIntegrationIds = new Set(integrations.map((row) => String(row.integration_id || "").trim()).filter(Boolean));
+  const coverage = (Array.isArray(data.coverage) ? data.coverage : []).filter((row) =>
+    validIntegrationIds.has(String(row.integration_id || "").trim())
+  );
+  return { components, integrations, coverage };
+}
+
 function loadSavedState() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -2155,19 +2386,25 @@ function loadSavedState() {
     if (!Array.isArray(parsed.components) || !Array.isArray(parsed.integrations) || !Array.isArray(parsed.coverage)) {
       return false;
     }
+    const sanitized = sanitizeLoadedData({
+      components: parsed.components,
+      integrations: parsed.integrations,
+      coverage: parsed.coverage,
+    });
       state = {
         ...state,
-        components: parsed.components,
-        integrations: parsed.integrations,
-        coverage: parsed.coverage,
+        components: sanitized.components,
+        integrations: sanitized.integrations,
+        coverage: sanitized.coverage,
         proposalReview: null,
         proposalModalOpen: false,
-        selectedIntegrationId: parsed.integrations[0]?.integration_id || "",
+        selectedIntegrationId: sanitized.integrations[0]?.integration_id || "",
       selectedComponentName: "",
       editMode: false,
-      pendingConnectionFrom: "",
-      pendingConnectionDirection: "output",
-      editorMode: "",
+    pendingConnectionFrom: "",
+    pendingConnectionDirection: "output",
+    pendingConnectionDiagramDefault: "core",
+    editorMode: "",
       detailModalOpen: false,
     };
     return true;
@@ -2192,7 +2429,10 @@ function persistState() {
 }
 
 function renderDetailModalState() {
-  const shouldOpen = state.detailModalOpen && Boolean(state.selectedComponentName || state.selectedIntegrationId || state.editorMode);
+  const shouldOpen =
+    !state.pendingConnectionFrom &&
+    state.detailModalOpen &&
+    Boolean(state.selectedComponentName || state.selectedIntegrationId || state.editorMode);
   elements.detailModal.classList.toggle("is-open", shouldOpen);
   elements.detailModal.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
 }
@@ -2201,6 +2441,7 @@ function closeDetailModal() {
   if (state.pendingConnectionFrom) {
     state.pendingConnectionFrom = "";
     state.pendingConnectionDirection = "output";
+    state.pendingConnectionDiagramDefault = "core";
   }
   state.detailModalOpen = false;
   render();
@@ -2221,6 +2462,17 @@ function getNodeMetrics(name) {
   return {
     width,
     halfWidth: width / 2,
+    height: 56,
+    halfHeight: 28,
+  };
+}
+
+function getNodeGuard(position, metrics, padding) {
+  return {
+    left: position.x - metrics.halfWidth - padding,
+    right: position.x + metrics.halfWidth + padding,
+    top: position.y - metrics.halfHeight - padding,
+    bottom: position.y + metrics.halfHeight + padding,
   };
 }
 

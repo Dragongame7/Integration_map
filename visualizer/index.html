@@ -75,6 +75,24 @@
           <input id="showSecondaryFilter" type="checkbox" />
           補助連携を表示
         </label>
+        <div id="pendingConnectionControls" class="connection-toolbar" hidden>
+          <label>
+            向き
+            <select id="pendingConnectionDirectionSelect">
+              <option value="output">出力</option>
+              <option value="input">入力</option>
+              <option value="bidirectional">相互連携</option>
+            </select>
+          </label>
+          <label>
+            図の扱い
+            <select id="pendingConnectionDiagramSelect">
+              <option value="core">主連携</option>
+              <option value="secondary">補助連携</option>
+            </select>
+          </label>
+          <button id="cancelPendingConnectionToolbarButton" type="button">中止</button>
+        </div>
       </section>
 
       <section class="summary-strip" id="summaryStrip"></section>

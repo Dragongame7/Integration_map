@@ -18,11 +18,6 @@ INT-006,MON,監視,Yes,重大イベントをアラートで検知する必要が
 INT-006,PERF,性能,Yes,ピーク時転送遅延が監視遅延に影響するため,PLANNED,TC-006-003,Stress,Yes,,未取得,転送遅延メトリクス,2026-07-01,,SecOps,ピーク時転送遅延
 INT-007,AUTH,認証,Yes,Outlook認証がAD連携に依存するため,READY,TC-007-001,Normal,Yes,,未取得,認証成功ログ,2026-06-24,,IdentityTeam,Outlook認証
 INT-007,DATA,データ連携,Yes,アドレス帳属性参照が利用者操作に影響するため,PLANNED,TC-007-002,Normal,Yes,,未取得,属性参照結果画面,2026-06-24,,IdentityTeam,アドレス帳属性参照
-INT-008,DATA,データ連携,Yes,運用ファイルがSharePointへ格納される必要がある,READY,TC-008-001,Normal,Yes,,未取得,SharePointファイル一覧,2026-06-29,,OpsTeam,ファイル格納結果
-INT-008,AUTHZ,認可,Yes,格納先権限が運用ファイルの閲覧範囲を決めるため,PLANNED,TC-008-002,Abnormal,Yes,,未取得,権限確認画面,2026-06-29,,OpsTeam,格納先権限
-INT-008,OPS,運用,Yes,夜間処理後の確認手順を明確化するため,PLANNED,TC-008-003,Recovery,Yes,,未取得,夜間処理ログ,2026-06-29,,OpsTeam,夜間処理後の確認手順
-INT-009,DATA,データ連携,Yes,ジョブログがSplunkへ取り込まれる必要がある,READY,TC-009-001,Normal,Yes,,未取得,Splunk取り込み状況,2026-06-25,,OpsTeam,ジョブログ取り込み
-INT-009,MON,監視,Yes,異常終了をアラートで検知する必要がある,PLANNED,TC-009-002,Abnormal,Yes,,未取得,異常終了アラート履歴,2026-06-25,,OpsTeam,異常終了アラート
 INT-010,DATA,データ連携,Yes,保護付きメールが送受信できる必要がある,PLANNED,TC-010-001,Normal,Yes,,未取得,Virtru送信監査ログ,2026-07-02,,M365Team,保護付きメール送受信
 INT-010,AUTHZ,認可,Yes,外部送信時の保護ポリシー適用を確認する必要がある,PLANNED,TC-010-002,Abnormal,Yes,,未取得,ポリシー適用結果画面,2026-07-02,,M365Team,外部送信時の保護制御
 INT-011,DATA,データ連携,Yes,共有ファイルに保護ポリシーが付与される必要がある,PLANNED,TC-011-001,Normal,Yes,,未取得,共有ファイル属性と監査ログ,2026-07-02,,M365Team,共有ファイル保護

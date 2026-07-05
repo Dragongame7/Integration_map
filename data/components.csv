@@ -6,7 +6,6 @@ CMP-004,FortiGate,Network Security,NetworkTeam,境界防御と通信制御
 CMP-005,Cisco Switch,Network Security,NetworkTeam,L2/L3ネットワークとSyslog送信
 CMP-006,VMware vSphere,Platform,ServerTeam,仮想基盤と仮想サーバ管理
 CMP-007,Splunk,Security Ops,OpsTeam,ログ収集と監視アラート
-CMP-008,COTS Batch Tool,Operations,OpsTeam,定期運用ジョブと外部製品連携
 CMP-009,Trellix HX,Security Ops,SecOps,EDRとインシデント調査
 CMP-010,SKYSEA,Operations,OpsTeam,資産管理と端末運用管理
 CMP-011,OpenFreeRadius,Identity,IdentityTeam,RADIUS認証基盤
