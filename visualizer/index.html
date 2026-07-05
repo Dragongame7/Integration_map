@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>基盤結合試験 連携可視化</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="product-label">Infrastructure Integration Test Map</p>
+          <h1>基盤連携と試験網羅性</h1>
+        </div>
+        <div class="file-panel" aria-label="CSV読み込み">
+          <label>
+            構成要素
+            <input id="componentsFile" type="file" accept=".csv" />
+          </label>
+          <label>
+            結合点
+            <input id="integrationsFile" type="file" accept=".csv" />
+          </label>
+          <label>
+            観点
+            <input id="coverageFile" type="file" accept=".csv" />
+          </label>
+          <button id="sampleButton" type="button">サンプル表示</button>
+          <div class="action-panel" aria-label="編集操作">
+            <button id="editModeButton" type="button">編集モード開始</button>
+            <button id="addComponentButton" type="button">製品追加</button>
+            <button id="startConnectionButton" type="button">線を引く</button>
+            <button id="autoLayoutButton" type="button">自動整列</button>
+            <button id="exportJsonButton" type="button">JSON保存</button>
+            <button id="exportCsvButton" type="button">CSV保存</button>
+            <button id="importJsonButton" type="button">JSON読込</button>
+            <input id="jsonFileInput" type="file" accept=".json" hidden />
+          </div>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="表示条件">
+        <label>
+          重要度
+          <select id="criticalityFilter">
+            <option value="ALL">すべて</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </label>
+        <label>
+          担当
+          <select id="ownerFilter">
+            <option value="ALL">すべて</option>
+          </select>
+        </label>
+        <label>
+          連携種別
+          <select id="integrationTypeFilter">
+            <option value="ALL">すべて</option>
+          </select>
+        </label>
+        <label class="toggle">
+          <input id="openOnlyFilter" type="checkbox" />
+          要確認リスクあり
+        </label>
+      </section>
+
+      <section class="summary-strip" id="summaryStrip"></section>
+
+      <section class="workspace">
+        <section class="map-panel" aria-label="連携図">
+          <div class="panel-title">
+            <div>
+              <p class="kicker">Topology</p>
+              <h2>製品間連携図</h2>
+            </div>
+            <div class="legend">
+              <span><i class="line high"></i>High</span>
+              <span><i class="line medium"></i>Medium</span>
+              <span><i class="line low"></i>Low</span>
+              <span><i class="badge danger"></i>未完了</span>
+            </div>
+          </div>
+          <svg id="mapSvg" viewBox="0 0 1280 760" role="img" aria-label="システム基盤の製品間連携図"></svg>
+        </section>
+
+        <aside class="detail-panel" aria-label="選択中の結合点">
+          <div class="panel-title">
+            <div>
+              <p class="kicker">Selected Link</p>
+              <h2>結合点詳細</h2>
+            </div>
+          </div>
+          <div id="selectedDetail" class="selected-detail"></div>
+          <div id="editorPanel" class="editor-panel"></div>
+        </aside>
+      </section>
+
+      <section class="tables">
+        <section class="table-panel">
+          <div class="panel-title">
+            <div>
+              <p class="kicker">Risks</p>
+              <h2>未完了リスク</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="riskTable">
+              <thead>
+                <tr>
+                  <th>結合ID</th>
+                  <th>連携</th>
+                  <th>種別</th>
+                  <th>進捗</th>
+                  <th>重要度</th>
+                  <th>リスク</th>
+                  <th>担当</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="table-panel">
+          <div class="panel-title">
+            <div>
+              <p class="kicker">Coverage</p>
+              <h2>観点マトリクス</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="coverageTable">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

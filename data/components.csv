@@ -1,0 +1,23 @@
+component_id,component_name,domain,owner,description
+CMP-001,Outlook,User Access,M365Team,メール通知と利用者接点
+CMP-002,SharePoint,User Access,M365Team,文書管理と権限制御
+CMP-003,Active Directory,Identity,IdentityTeam,認証とグループ管理
+CMP-004,FortiGate,Network Security,NetworkTeam,境界防御と通信制御
+CMP-005,Cisco Switch,Network Security,NetworkTeam,L2/L3ネットワークとSyslog送信
+CMP-006,VMware vSphere,Platform,ServerTeam,仮想基盤と仮想サーバ管理
+CMP-007,Splunk,Security Ops,OpsTeam,ログ収集と監視アラート
+CMP-008,COTS Batch Tool,Operations,OpsTeam,定期運用ジョブと外部製品連携
+CMP-009,Trellix HX,Security Ops,SecOps,EDRとインシデント調査
+CMP-010,SKYSEA,Operations,OpsTeam,資産管理と端末運用管理
+CMP-011,OpenFreeRadius,Identity,IdentityTeam,RADIUS認証基盤
+CMP-012,Trellix ePO,Operations,SecOps,セキュリティポリシー配布と統合管理
+CMP-013,Tenable,Security Ops,SecOps,脆弱性診断と継続監視
+CMP-014,Virtru,User Access,M365Team,メール保護と外部共有制御
+CMP-015,NextLabs,User Access,M365Team,ファイル共有時の保護とポリシー制御
+CMP-016,IDEA CA,Identity,IdentityTeam,認証局と証明書発行管理
+CMP-017,Tripwire,Security Ops,SecOps,改ざん検知と構成変更監視
+CMP-018,Horizon VDI,User Access,ServerTeam,仮想デスクトップ提供基盤
+CMP-019,Veeam Backup,Platform,ServerTeam,バックアップとリストア管理
+CMP-020,FortiManager,Network Security,NetworkTeam,FortiGateポリシー統合管理
+CMP-021,iDoperation,Identity,IdentityTeam,特権ID管理と操作統制
+CMP-022,Themis,Identity,IdentityTeam,多要素認証基盤
