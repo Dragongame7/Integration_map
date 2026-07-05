@@ -21,6 +21,10 @@
 | `data/integration_points.csv` | 製品間連携の台帳。連携種別、業務シナリオ、方式、ポート、期待証跡、失敗時影響を管理 |
 | `data/coverage_matrix.csv` | 結合点ごとの試験観点ステータス。必要理由、証跡要否、証跡状態を管理 |
 | `visualizer/index.html` | CSV を読み込んで連携図を表示するビューア |
+| `docs/product_addition_policy.md` | 製品追加と連携追加の判断基準 |
+| `docs/llm_import_contract.md` | ローカルLLMへ渡す入出力契約 |
+| `docs/llm_prompt_template.md` | ローカルLLMへ渡すプロンプト雛形 |
+| `docs/examples/*.json` | `提案JSON読込` で試せる提案サンプル |
 
 ## 使い方
 
@@ -66,6 +70,25 @@ npm start
 連携種別は `integration_type` で分類します。例は `認証`、`認可`、`通信制御`、`ログ連携`、`監視`、`ファイル連携`、`通知` です。
 
 重要度が高く、かつ `PASS` になっていない観点が多い結合点ほど、レビューで優先確認すべき対象です。加えて、観点が未定義の結合点、`PASS` なのに `evidence_id` または `evidence_status` が不足している観点もリスクとして扱います。
+
+## ローカルLLM連携
+
+ローカルLLMに製品追加案を出させる前に、次の文書を必ず参照してください。
+
+- `docs/product_addition_policy.md`
+- `docs/llm_import_contract.md`
+- `docs/llm_prompt_template.md`
+
+推奨フロー:
+
+1. 追加したい製品名と既知前提を整理する
+2. 上記ドキュメントをローカルLLMへ渡してJSON提案を作らせる
+3. 提案を人手レビューする
+4. 承認した内容だけCSVへ反映する
+
+サンプル:
+
+- `docs/examples/pingfederate-proposal.json`
 
 ## ステータス
 

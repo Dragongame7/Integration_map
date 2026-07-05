@@ -55,3 +55,7 @@ INT-024,AUTHZ,認可,Yes,特権IDの付与制御を確認する必要がある,P
 INT-024,OPS,運用,Yes,棚卸や申請承認フローを確認する必要がある,PLANNED,TC-024-002,Recovery,Yes,,未取得,棚卸結果と承認履歴,2026-07-04,,IdentityTeam,特権ID棚卸と承認
 INT-025,AUTH,認証,Yes,VDI利用時に多要素認証が成立する必要がある,PLANNED,TC-025-001,Normal,Yes,,未取得,Themis認証履歴,2026-07-04,,IdentityTeam,MFA認証成功
 INT-025,FAIL,障害,Yes,MFA失敗時の拒否動作を確認する必要がある,PLANNED,TC-025-002,Abnormal,Yes,,未取得,MFA失敗履歴,2026-07-04,,IdentityTeam,MFA失敗時の拒否動作
+INT-026,DATA,データ連携,Yes,検知イベントがSOARへ渡る必要がある,PLANNED,TC-026-001,Normal,Yes,,未取得,SOARイベント受信ログ,2026-07-05,,SecOps,検知イベントの連携
+INT-026,OPS,運用,Yes,プレイブック自動実行を確認する必要がある,PLANNED,TC-026-002,Recovery,Yes,,未取得,プレイブック実行履歴,2026-07-05,,SecOps,プレイブック自動実行
+INT-027,DATA,データ連携,Yes,UEBA向けイベントが継続的に取り込まれる必要がある,PLANNED,TC-027-001,Normal,Yes,,未取得,UEBAイベント取り込みログ,2026-07-05,,SecOps,UEBA向けイベント取り込み
+INT-027,MON,監視,Yes,ユーザー行動の異常検知結果を確認する必要がある,PLANNED,TC-027-002,Abnormal,Yes,,未取得,UEBA異常検知画面,2026-07-05,,SecOps,異常検知結果の確認

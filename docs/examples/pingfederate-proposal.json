@@ -1,0 +1,94 @@
+{
+  "summary": {
+    "requested_products": [
+      "PingFederate"
+    ],
+    "duplicate_candidates": [],
+    "assumptions": [
+      "対象製品は PingIdentity 全体ではなく PingFederate のみ",
+      "Active Directory 連携は確定",
+      "この提案ではまず PingFederate と Active Directory の主連携のみを追加する",
+      "監視ログ連携や他製品連携は未確定のため含めない"
+    ]
+  },
+  "components_to_add": [
+    {
+      "component_name": "PingFederate",
+      "domain": "Identity",
+      "owner": "IdentityTeam",
+      "description": "SSO とフェデレーションを担う認証基盤",
+      "reason": "既存構成に対する認証ハブとして個別に試験対象化する必要がある"
+    }
+  ],
+  "integrations_to_add": [
+    {
+      "proposal_key": "PINGFED-INT-001",
+      "from_component": "PingFederate",
+      "to_component": "Active Directory",
+      "flow_direction": "input",
+      "integration_type": "認証",
+      "business_scenario": "利用者認証時のディレクトリ参照",
+      "purpose": "PingFederate が Active Directory を利用して利用者認証と属性参照を行う",
+      "protocol_or_method": "LDAP / Federation",
+      "protocol": "TCP",
+      "port": "389/636/443/TBD",
+      "environment": "IT",
+      "criticality": "High",
+      "owner": "IdentityTeam",
+      "consumer_team": "UserSupportTeam",
+      "provider_team": "IdentityTeam",
+      "observability_point": "PingFederate 認証ログと AD 監査ログで認証結果と属性参照結果を確認する",
+      "failure_impact": "利用者認証が成立せず、SSO またはフェデレーション認証が利用できない",
+      "diagram_default": "core",
+      "notes": "LDAP/LDAPS 利用有無と実ポートは環境設計に応じて要確認",
+      "reason": "PingFederate 追加時の最重要な結合点であるため"
+    }
+  ],
+  "coverage_to_add": [
+    {
+      "integration_ref": "PINGFED-INT-001",
+      "viewpoint_code": "AUTH",
+      "viewpoint_name": "認証",
+      "required": "Yes",
+      "required_reason": "利用者認証が成立することが主目的であるため",
+      "status": "PLANNED",
+      "test_depth": "Normal",
+      "evidence_required": "Yes",
+      "owner": "IdentityTeam",
+      "observability_point": "PingFederate 認証成功ログと AD 認証監査ログ",
+      "remarks": "正常系の認証成立を確認する"
+    },
+    {
+      "integration_ref": "PINGFED-INT-001",
+      "viewpoint_code": "DATA",
+      "viewpoint_name": "データ連携",
+      "required": "Yes",
+      "required_reason": "属性参照結果が認証後の制御に影響するため",
+      "status": "PLANNED",
+      "test_depth": "Normal",
+      "evidence_required": "Yes",
+      "owner": "IdentityTeam",
+      "observability_point": "属性マッピング結果とディレクトリ参照ログ",
+      "remarks": "必要属性の取得可否を確認する"
+    },
+    {
+      "integration_ref": "PINGFED-INT-001",
+      "viewpoint_code": "FAIL",
+      "viewpoint_name": "障害",
+      "required": "Yes",
+      "required_reason": "AD 側障害や参照失敗時の影響確認が必要なため",
+      "status": "PLANNED",
+      "test_depth": "Recovery",
+      "evidence_required": "Yes",
+      "owner": "IdentityTeam",
+      "observability_point": "認証失敗ログとエラー応答または利用者画面",
+      "remarks": "参照失敗時の利用者影響を確認する"
+    }
+  ],
+  "review_points": [
+    "LDAP と LDAPS のどちらを使うか確定する",
+    "実際に利用するポート番号を確定する",
+    "PingFederate 連携先として SharePoint、Outlook、Horizon VDI などを今後追加対象にするか確認する",
+    "Themis との役割分担を整理する"
+  ]
+}

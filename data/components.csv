@@ -21,3 +21,5 @@ CMP-019,Veeam Backup,Platform,ServerTeam,バックアップとリストア管理
 CMP-020,FortiManager,Network Security,NetworkTeam,FortiGateポリシー統合管理
 CMP-021,iDoperation,Identity,IdentityTeam,特権ID管理と操作統制
 CMP-022,Themis,Identity,IdentityTeam,多要素認証基盤
+CMP-023,Splunk SOAR,Security Ops,SecOps,セキュリティ運用の自動化とオーケストレーション
+CMP-024,Splunk UEBA,Security Ops,SecOps,ユーザー行動分析と異常検知

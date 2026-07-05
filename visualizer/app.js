@@ -1,6 +1,10 @@
 const VIEWPOINTS = ["NET", "AUTH", "AUTHZ", "CFG", "DATA", "MON", "PERF", "FAIL", "OPS", "SEC"];
 const STATUS_PRIORITY = ["FAIL", "HOLD", "PLANNED", "READY", "RUN", "PASS", "NOT_NEEDED"];
 const DOMAIN_ORDER = ["User Access", "Identity", "Network Security", "Platform", "Security Ops", "Operations"];
+const VALID_CRITICALITIES = ["High", "Medium", "Low"];
+const VALID_DIAGRAM_DEFAULTS = ["core", "secondary"];
+const VALID_FLOW_DIRECTIONS = ["input", "output", "bidirectional"];
+const STORAGE_KEY = "infra-integration-map-v2-state";
 
 const sample = {
   components: `component_id,component_name,domain,owner,description
@@ -25,33 +29,37 @@ CMP-018,Horizon VDI,User Access,ServerTeam,仮想デスクトップ提供基盤
 CMP-019,Veeam Backup,Platform,ServerTeam,バックアップとリストア管理
 CMP-020,FortiManager,Network Security,NetworkTeam,FortiGateポリシー統合管理
 CMP-021,iDoperation,Identity,IdentityTeam,特権ID管理と操作統制
-CMP-022,Themis,Identity,IdentityTeam,多要素認証基盤`,
-  integrations: `integration_id,from_component,to_component,integration_type,business_scenario,purpose,protocol_or_method,protocol,port,environment,criticality,owner,lifecycle_stage,prerequisite_integration_id,consumer_team,provider_team,review_status,expected_evidence,observability_point,last_tested_at,failure_impact,notes
-INT-001,Outlook,SharePoint,通知,メール通知からの文書参照,通知メールから文書へアクセス,HTTPS,TCP,443,IT,High,M365Team,ケース作成済,,UserSupportTeam,M365Team,Open,アクセス画面キャプチャと認証ログ,SharePointアクセスログと利用者画面,2026-06-28,利用者が文書へ到達できない,URL到達と認証状態を確認
-INT-002,SharePoint,Active Directory,認可,グループ権限による文書閲覧,グループ権限による閲覧制御,LDAP/Graph,TCP,389/443,IT,High,IdentityTeam,実施中,INT-001,M365Team,IdentityTeam,Open,権限差分画面とADグループ変更履歴,SharePoint権限画面とAD監査ログ,2026-06-26,権限過不足により情報漏えいまたは閲覧不可,ADグループ反映と権限差分を確認
-INT-003,FortiGate,SharePoint,通信制御,SharePoint通信の許可と遮断,SharePoint通信の許可と拒否,HTTPS policy,TCP,443,IT,High,NetworkTeam,ケース作成済,INT-001,M365Team,NetworkTeam,Open,FWポリシー設定と遮断ログ,FortiGateトラフィックログ,2026-06-20,許可漏れまたは不要通信の通過,FWポリシーと遮断ログを確認
-INT-004,VMware vSphere,Active Directory,認証,仮想サーバのドメイン参加,仮想サーバのドメイン参加,Kerberos/LDAP,TCP/UDP,88/389/445,IT,High,ServerTeam,実施中,,ServerTeam,IdentityTeam,Open,ドメイン参加結果とGPO適用ログ,イベントログとGPO結果レポート,2026-06-27,サーバ運用と認証連携が成立しない,GPO反映と再起動後状態を確認
-INT-005,Cisco Switch,Splunk,ログ連携,ネットワーク機器ログ集約,ネットワーク機器ログの集約,Syslog,UDP,514,IT,Medium,OpsTeam,完了,,OpsTeam,NetworkTeam,Open,Splunk検索結果と送信元ホスト確認,Splunkインデックス検索,2026-06-30,障害解析に必要なログが欠損,送信元ホストと時刻を確認
-INT-006,FortiGate,Splunk,監視,セキュリティイベント監視,セキュリティログ監視,Syslog,UDP,514,IT,High,SecOps,要再試験,INT-005,SecOps,NetworkTeam,Open,Splunkアラート履歴とイベント検索結果,Splunk相関検索とアラート履歴,2026-07-01,重大イベントの検知遅延または未検知,重大イベントの検知とアラートを確認
-INT-007,Outlook,Active Directory,認証,利用者認証とアドレス帳参照,利用者認証とアドレス帳参照,Kerberos/LDAP,TCP,88/389,IT,Medium,IdentityTeam,ケース作成済,INT-001,UserSupportTeam,IdentityTeam,Open,認証成功ログと属性参照結果,認証ログと属性参照結果画面,2026-06-24,利用者認証または宛先解決に失敗,資格情報と属性参照を確認
-INT-008,COTS Batch Tool,SharePoint,ファイル連携,夜間処理後の運用ファイル格納,運用ファイルの格納と参照,HTTPS/API,TCP,443,IT,Medium,OpsTeam,実施中,INT-001,OpsTeam,M365Team,Open,格納ファイル一覧と処理ログ,SharePointファイル一覧とバッチログ,2026-06-29,運用ファイルの欠損または権限誤り,夜間処理後の格納結果を確認
-INT-009,COTS Batch Tool,Splunk,ログ連携,ジョブログ監視,ジョブログの監視連携,File forwarder,TCP,9997,IT,Medium,OpsTeam,ケース作成済,INT-008,OpsTeam,SecOps,Open,Splunk検索結果と異常終了アラート履歴,Splunk取り込み状況とアラート履歴,2026-06-25,ジョブ異常の検知遅延,異常終了ログの検知を確認
-INT-010,Virtru,Outlook,通知,保護付きメール送受信,メールでの保護連携,Mail add-in/API,TCP,443,IT,High,M365Team,ケース作成済,INT-001,UserSupportTeam,M365Team,Open,暗号化メール画面と送受信ログ,Outlook送信履歴とVirtru監査ログ,2026-07-02,保護付きメールが送受信できない,メールでの連携のみ仮登録
-INT-011,NextLabs,SharePoint,ファイル連携,共有ファイルの保護制御,ファイル共有時の保護連携,Policy enforcement/API,TCP,443,IT,High,M365Team,ケース作成済,INT-008,M365Team,M365Team,Open,保護ポリシー適用結果と共有ログ,SharePoint共有履歴とポリシー監査ログ,2026-07-02,共有ファイルに保護ポリシーが適用されない,ファイル共有での連携のみ仮登録
-INT-012,OpenFreeRadius,Active Directory,認証,ネットワーク認証の利用者照合,RADIUS認証基盤の利用者照合,RADIUS/LDAP,UDP/TCP,1812/389,IT,High,IdentityTeam,ケース作成済,,NetworkTeam,IdentityTeam,Open,認証成功ログとAD参照結果,Radius認証ログとAD監査ログ,2026-07-02,利用者認証が成立せずネットワーク接続できない,RADIUS認証バックエンドの仮連携
-INT-013,SKYSEA,Active Directory,認証,端末資産と利用者情報の関連付け,端末管理用の利用者情報参照,LDAP,TCP,389,IT,Medium,OpsTeam,ケース作成済,,OpsTeam,IdentityTeam,Open,端末台帳と利用者情報の参照結果,SKYSEA操作ログとAD参照ログ,2026-07-02,端末利用者情報が突合できない,資産管理向けの仮連携
-INT-014,SKYSEA,Splunk,ログ連携,端末操作ログの集約,端末管理ログの監視連携,Syslog/API,TCP,443/514,IT,Medium,OpsTeam,ケース作成済,INT-013,OpsTeam,SecOps,Open,Splunk検索結果と操作ログ,SKYSEA監査ログとSplunk検索,2026-07-02,端末操作ログが集約されない,監視用途の仮連携
-INT-015,Trellix HX,Splunk,監視,EDRイベントの監視集約,EDRイベントの監視連携,Syslog/API,TCP,443/514,IT,High,SecOps,実施中,,SecOps,SecOps,Open,アラート履歴とEDRイベント検索,Splunk相関検索とHXイベントログ,2026-07-03,EDRイベントが監視に上がらない,EDR監視用途の仮連携
-INT-016,Trellix ePO,Trellix HX,設定反映,エージェントとポリシー統合管理,EDRポリシー配布と統合管理,Management API,TCP,443,IT,High,SecOps,ケース作成済,INT-015,SecOps,SecOps,Open,ポリシー配布結果と管理コンソール画面,ePO配布ログとHXエージェント状態,2026-07-03,HXへポリシーが反映されない,管理基盤の仮連携
-INT-017,Tenable,VMware vSphere,監視,仮想サーバの脆弱性診断,仮想サーバの脆弱性スキャン連携,Scanner/API,TCP,443,IT,Medium,SecOps,ケース作成済,INT-004,SecOps,ServerTeam,Open,スキャン結果と対象資産一覧,Tenableスキャン結果とvSphere資産情報,2026-07-03,脆弱性診断対象が取得できない,脆弱性診断用途の仮連携
-INT-018,IDEA CA,Active Directory,認証,証明書発行対象の利用者連携,認証局向けの利用者情報連携,LDAP/API,TCP,389/443,IT,High,IdentityTeam,ケース作成済,,IdentityTeam,IdentityTeam,Open,証明書発行結果と利用者情報参照ログ,CA発行ログとAD監査ログ,2026-07-04,証明書発行対象を正しく識別できない,認証局用途の仮連携
-INT-019,Tripwire,Splunk,監視,改ざん検知イベントの集約,改ざん検知イベントの監視連携,Syslog/API,TCP,443/514,IT,High,SecOps,ケース作成済,,SecOps,SecOps,Open,改ざん検知イベントと検索結果,Splunk相関検索とTripwireイベントログ,2026-07-04,改ざん検知イベントが監視へ連携されない,改ざん検知用途の仮連携
-INT-020,Horizon VDI,Active Directory,認証,VDI利用者のドメイン認証,仮想デスクトップ利用者認証,Kerberos/LDAP,TCP,88/389,IT,High,ServerTeam,実施中,,UserSupportTeam,IdentityTeam,Open,ログイン成功画面と認証ログ,VDI接続ログとAD認証ログ,2026-07-04,VDI利用者がログインできない,VDI認証用途の仮連携
-INT-021,Horizon VDI,VMware vSphere,運用,仮想デスクトップ基盤のホスト連携,VDIホスト管理連携,Management API,TCP,443,IT,High,ServerTeam,ケース作成済,INT-020,ServerTeam,ServerTeam,Open,仮想デスクトップ一覧とホスト状態,VDI管理画面とvSphere状態画面,2026-07-04,仮想デスクトップを配備できない,VDIホスト用途の仮連携
-INT-022,Veeam Backup,VMware vSphere,運用,仮想基盤バックアップ,バックアップ対象の取得と保護,Backup API,TCP,443,IT,High,ServerTeam,実施中,INT-004,OpsTeam,ServerTeam,Open,バックアップジョブ結果と復元ログ,Veeamジョブ履歴とvSphere資産一覧,2026-07-04,バックアップまたは復元が成立しない,バックアップ用途の仮連携
-INT-023,FortiManager,FortiGate,設定反映,FWポリシーの統合管理,FortiGateポリシー配布管理,Management API,TCP,443,IT,High,NetworkTeam,ケース作成済,INT-003,NetworkTeam,NetworkTeam,Open,ポリシー配布結果と管理画面,FortiManager配布ログとFortiGate設定差分,2026-07-04,FWポリシーを一括反映できない,Forti管理用途の仮連携
-INT-024,iDoperation,Active Directory,認可,特権IDの利用者管理,特権ID管理向けの利用者情報連携,LDAP/API,TCP,389/443,IT,High,IdentityTeam,ケース作成済,,OpsTeam,IdentityTeam,Open,特権ID付与結果と操作ログ,特権申請ログとAD監査ログ,2026-07-04,特権ID付与や棚卸が正しく行えない,特権管理用途の仮連携
-INT-025,Themis,Horizon VDI,認証,VDI利用時の多要素認証,仮想デスクトップ向け多要素認証,Auth API,TCP,443,IT,High,IdentityTeam,ケース作成済,INT-020,UserSupportTeam,IdentityTeam,Open,MFA成功画面と認証履歴,Themis認証履歴とVDI接続ログ,2026-07-04,VDI利用時に多要素認証が成立しない,MFA用途の仮連携`,
+CMP-022,Themis,Identity,IdentityTeam,多要素認証基盤
+CMP-023,Splunk SOAR,Security Ops,SecOps,セキュリティ運用の自動化とオーケストレーション
+CMP-024,Splunk UEBA,Security Ops,SecOps,ユーザー行動分析と異常検知`,
+  integrations: `integration_id,from_component,to_component,flow_direction,integration_type,business_scenario,purpose,protocol_or_method,protocol,port,environment,criticality,owner,lifecycle_stage,prerequisite_integration_id,consumer_team,provider_team,review_status,expected_evidence,observability_point,last_tested_at,failure_impact,diagram_default,notes
+INT-001,Outlook,SharePoint,output,通知,メール通知からの文書参照,通知メールから文書へアクセス,HTTPS,TCP,443,IT,High,M365Team,ケース作成済,,UserSupportTeam,M365Team,Open,アクセス画面キャプチャと認証ログ,SharePointアクセスログと利用者画面,2026-06-28,利用者が文書へ到達できない,core,URL到達と認証状態を確認
+INT-002,SharePoint,Active Directory,input,認可,グループ権限による文書閲覧,グループ権限による閲覧制御,LDAP/Graph,TCP,389/443,IT,High,IdentityTeam,実施中,INT-001,M365Team,IdentityTeam,Open,権限差分画面とADグループ変更履歴,SharePoint権限画面とAD監査ログ,2026-06-26,権限過不足により情報漏えいまたは閲覧不可,core,ADグループ反映と権限差分を確認
+INT-003,FortiGate,SharePoint,output,通信制御,SharePoint通信の許可と遮断,SharePoint通信の許可と拒否,HTTPS policy,TCP,443,IT,High,NetworkTeam,ケース作成済,INT-001,M365Team,NetworkTeam,Open,FWポリシー設定と遮断ログ,FortiGateトラフィックログ,2026-06-20,許可漏れまたは不要通信の通過,core,FWポリシーと遮断ログを確認
+INT-004,VMware vSphere,Active Directory,input,認証,仮想サーバのドメイン参加,仮想サーバのドメイン参加,Kerberos/LDAP,TCP/UDP,88/389/445,IT,High,ServerTeam,実施中,,ServerTeam,IdentityTeam,Open,ドメイン参加結果とGPO適用ログ,イベントログとGPO結果レポート,2026-06-27,サーバ運用と認証連携が成立しない,core,GPO反映と再起動後状態を確認
+INT-005,Cisco Switch,Splunk,output,ログ連携,ネットワーク機器ログ集約,ネットワーク機器ログの集約,Syslog,UDP,514,IT,Medium,OpsTeam,完了,,OpsTeam,NetworkTeam,Open,Splunk検索結果と送信元ホスト確認,Splunkインデックス検索,2026-06-30,障害解析に必要なログが欠損,secondary,送信元ホストと時刻を確認
+INT-006,FortiGate,Splunk,output,監視,セキュリティイベント監視,セキュリティログ監視,Syslog,UDP,514,IT,High,SecOps,要再試験,INT-005,SecOps,NetworkTeam,Open,Splunkアラート履歴とイベント検索結果,Splunk相関検索とアラート履歴,2026-07-01,重大イベントの検知遅延または未検知,secondary,重大イベントの検知とアラートを確認
+INT-007,Outlook,Active Directory,input,認証,利用者認証とアドレス帳参照,利用者認証とアドレス帳参照,Kerberos/LDAP,TCP,88/389,IT,Medium,IdentityTeam,ケース作成済,INT-001,UserSupportTeam,IdentityTeam,Open,認証成功ログと属性参照結果,認証ログと属性参照結果画面,2026-06-24,利用者認証または宛先解決に失敗,core,資格情報と属性参照を確認
+INT-008,COTS Batch Tool,SharePoint,output,ファイル連携,夜間処理後の運用ファイル格納,運用ファイルの格納と参照,HTTPS/API,TCP,443,IT,Medium,OpsTeam,実施中,INT-001,OpsTeam,M365Team,Open,格納ファイル一覧と処理ログ,SharePointファイル一覧とバッチログ,2026-06-29,運用ファイルの欠損または権限誤り,core,夜間処理後の格納結果を確認
+INT-009,COTS Batch Tool,Splunk,output,ログ連携,ジョブログ監視,ジョブログの監視連携,File forwarder,TCP,9997,IT,Medium,OpsTeam,ケース作成済,INT-008,OpsTeam,SecOps,Open,Splunk検索結果と異常終了アラート履歴,Splunk取り込み状況とアラート履歴,2026-06-25,ジョブ異常の検知遅延,secondary,異常終了ログの検知を確認
+INT-010,Virtru,Outlook,output,通知,保護付きメール送受信,メールでの保護連携,Mail add-in/API,TCP,443,IT,High,M365Team,ケース作成済,INT-001,UserSupportTeam,M365Team,Open,暗号化メール画面と送受信ログ,Outlook送信履歴とVirtru監査ログ,2026-07-02,保護付きメールが送受信できない,core,メールでの連携のみ仮登録
+INT-011,NextLabs,SharePoint,output,ファイル連携,共有ファイルの保護制御,ファイル共有時の保護連携,Policy enforcement/API,TCP,443,IT,High,M365Team,ケース作成済,INT-008,M365Team,M365Team,Open,保護ポリシー適用結果と共有ログ,SharePoint共有履歴とポリシー監査ログ,2026-07-02,共有ファイルに保護ポリシーが適用されない,core,ファイル共有での連携のみ仮登録
+INT-012,OpenFreeRadius,Active Directory,input,認証,ネットワーク認証の利用者照合,RADIUS認証基盤の利用者照合,RADIUS/LDAP,UDP/TCP,1812/389,IT,High,IdentityTeam,ケース作成済,,NetworkTeam,IdentityTeam,Open,認証成功ログとAD参照結果,Radius認証ログとAD監査ログ,2026-07-02,利用者認証が成立せずネットワーク接続できない,core,RADIUS認証バックエンドの仮連携
+INT-013,SKYSEA,Active Directory,input,認証,端末資産と利用者情報の関連付け,端末管理用の利用者情報参照,LDAP,TCP,389,IT,Medium,OpsTeam,ケース作成済,,OpsTeam,IdentityTeam,Open,端末台帳と利用者情報の参照結果,SKYSEA操作ログとAD参照ログ,2026-07-02,端末利用者情報が突合できない,core,資産管理向けの仮連携
+INT-014,SKYSEA,Splunk,output,ログ連携,端末操作ログの集約,端末管理ログの監視連携,Syslog/API,TCP,443/514,IT,Medium,OpsTeam,ケース作成済,INT-013,OpsTeam,SecOps,Open,Splunk検索結果と操作ログ,SKYSEA監査ログとSplunk検索,2026-07-02,端末操作ログが集約されない,secondary,監視用途の仮連携
+INT-015,Trellix HX,Splunk,output,監視,EDRイベントの監視集約,EDRイベントの監視連携,Syslog/API,TCP,443/514,IT,High,SecOps,実施中,,SecOps,SecOps,Open,アラート履歴とEDRイベント検索,Splunk相関検索とHXイベントログ,2026-07-03,EDRイベントが監視に上がらない,secondary,EDR監視用途の仮連携
+INT-016,Trellix ePO,Trellix HX,output,設定反映,エージェントとポリシー統合管理,EDRポリシー配布と統合管理,Management API,TCP,443,IT,High,SecOps,ケース作成済,INT-015,SecOps,SecOps,Open,ポリシー配布結果と管理コンソール画面,ePO配布ログとHXエージェント状態,2026-07-03,HXへポリシーが反映されない,core,管理基盤の仮連携
+INT-017,Tenable,VMware vSphere,output,監視,仮想サーバの脆弱性診断,仮想サーバの脆弱性スキャン連携,Scanner/API,TCP,443,IT,Medium,SecOps,ケース作成済,INT-004,SecOps,ServerTeam,Open,スキャン結果と対象資産一覧,Tenableスキャン結果とvSphere資産情報,2026-07-03,脆弱性診断対象が取得できない,core,脆弱性診断用途の仮連携
+INT-018,IDEA CA,Active Directory,input,認証,証明書発行対象の利用者連携,認証局向けの利用者情報連携,LDAP/API,TCP,389/443,IT,High,IdentityTeam,ケース作成済,,IdentityTeam,IdentityTeam,Open,証明書発行結果と利用者情報参照ログ,CA発行ログとAD監査ログ,2026-07-04,証明書発行対象を正しく識別できない,core,認証局用途の仮連携
+INT-019,Tripwire,Splunk,output,監視,改ざん検知イベントの集約,改ざん検知イベントの監視連携,Syslog/API,TCP,443/514,IT,High,SecOps,ケース作成済,,SecOps,SecOps,Open,改ざん検知イベントと検索結果,Splunk相関検索とTripwireイベントログ,2026-07-04,改ざん検知イベントが監視へ連携されない,secondary,改ざん検知用途の仮連携
+INT-020,Horizon VDI,Active Directory,input,認証,VDI利用者のドメイン認証,仮想デスクトップ利用者認証,Kerberos/LDAP,TCP,88/389,IT,High,ServerTeam,実施中,,UserSupportTeam,IdentityTeam,Open,ログイン成功画面と認証ログ,VDI接続ログとAD認証ログ,2026-07-04,VDI利用者がログインできない,core,VDI認証用途の仮連携
+INT-021,Horizon VDI,VMware vSphere,input,運用,仮想デスクトップ基盤のホスト連携,VDIホスト管理連携,Management API,TCP,443,IT,High,ServerTeam,ケース作成済,INT-020,ServerTeam,ServerTeam,Open,仮想デスクトップ一覧とホスト状態,VDI管理画面とvSphere状態画面,2026-07-04,仮想デスクトップを配備できない,core,VDIホスト用途の仮連携
+INT-022,Veeam Backup,VMware vSphere,input,運用,仮想基盤バックアップ,バックアップ対象の取得と保護,Backup API,TCP,443,IT,High,ServerTeam,実施中,INT-004,OpsTeam,ServerTeam,Open,バックアップジョブ結果と復元ログ,Veeamジョブ履歴とvSphere資産一覧,2026-07-04,バックアップまたは復元が成立しない,core,バックアップ用途の仮連携
+INT-023,FortiManager,FortiGate,output,設定反映,FWポリシーの統合管理,FortiGateポリシー配布管理,Management API,TCP,443,IT,High,NetworkTeam,ケース作成済,INT-003,NetworkTeam,NetworkTeam,Open,ポリシー配布結果と管理画面,FortiManager配布ログとFortiGate設定差分,2026-07-04,FWポリシーを一括反映できない,core,Forti管理用途の仮連携
+INT-024,iDoperation,Active Directory,input,認可,特権IDの利用者管理,特権ID管理向けの利用者情報連携,LDAP/API,TCP,389/443,IT,High,IdentityTeam,ケース作成済,,OpsTeam,IdentityTeam,Open,特権ID付与結果と操作ログ,特権申請ログとAD監査ログ,2026-07-04,特権ID付与や棚卸が正しく行えない,core,特権管理用途の仮連携
+INT-025,Themis,Horizon VDI,output,認証,VDI利用時の多要素認証,仮想デスクトップ向け多要素認証,Auth API,TCP,443,IT,High,IdentityTeam,ケース作成済,INT-020,UserSupportTeam,IdentityTeam,Open,MFA成功画面と認証履歴,Themis認証履歴とVDI接続ログ,2026-07-04,VDI利用時に多要素認証が成立しない,core,MFA用途の仮連携
+INT-026,Splunk,Splunk SOAR,output,運用,検知イベントの自動化連携,セキュリティイベントの自動化連携,REST API,TCP,443,IT,High,SecOps,ケース作成済,INT-006,SecOps,SecOps,Open,プレイブック実行結果と連携ログ,SOARプレイブック履歴とSplunk検索,2026-07-05,検知イベントを自動処理できない,core,SOAR用途の仮連携
+INT-027,Splunk,Splunk UEBA,output,監視,ユーザー行動分析向けイベント連携,ユーザー行動分析イベント連携,REST API,TCP,443,IT,High,SecOps,ケース作成済,INT-006,SecOps,SecOps,Open,分析結果とイベント取り込みログ,UEBA分析画面とSplunk検索,2026-07-05,行動分析用イベントを取り込めない,core,UEBA用途の仮連携`,
   coverage: `integration_id,viewpoint_code,viewpoint_name,required,required_reason,status,test_case_id,test_depth,evidence_required,evidence_id,evidence_status,observability_point,last_tested_at,defect_id,owner,remarks
 INT-001,NET,通信,Yes,メールからSharePoint URLへ到達できる必要がある,READY,TC-001-001,Normal,Yes,,未取得,SharePointアクセスログ,2026-06-28,,M365Team,メール内URLからSharePointへ到達
 INT-001,AUTH,認証,Yes,SSOまたは再認証の期待動作を確認する必要がある,PLANNED,TC-001-002,Normal,Yes,,未取得,認証ログ,2026-06-28,,M365Team,SSOまたは再認証の期待動作
@@ -108,21 +116,29 @@ INT-023,FAIL,障害,Yes,配布失敗時の切戻しを確認する必要があ�
 INT-024,AUTHZ,認可,Yes,特権IDの付与制御を確認する必要がある,PLANNED,TC-024-001,Normal,Yes,,未取得,特権申請ログ,2026-07-04,,IdentityTeam,特権ID付与制御
 INT-024,OPS,運用,Yes,棚卸や申請承認フローを確認する必要がある,PLANNED,TC-024-002,Recovery,Yes,,未取得,棚卸結果と承認履歴,2026-07-04,,IdentityTeam,特権ID棚卸と承認
 INT-025,AUTH,認証,Yes,VDI利用時に多要素認証が成立する必要がある,PLANNED,TC-025-001,Normal,Yes,,未取得,Themis認証履歴,2026-07-04,,IdentityTeam,MFA認証成功
-INT-025,FAIL,障害,Yes,MFA失敗時の拒否動作を確認する必要がある,PLANNED,TC-025-002,Abnormal,Yes,,未取得,MFA失敗履歴,2026-07-04,,IdentityTeam,MFA失敗時の拒否動作`,
+INT-025,FAIL,障害,Yes,MFA失敗時の拒否動作を確認する必要がある,PLANNED,TC-025-002,Abnormal,Yes,,未取得,MFA失敗履歴,2026-07-04,,IdentityTeam,MFA失敗時の拒否動作
+INT-026,DATA,データ連携,Yes,検知イベントがSOARへ渡る必要がある,PLANNED,TC-026-001,Normal,Yes,,未取得,SOARイベント受信ログ,2026-07-05,,SecOps,検知イベントの連携
+INT-026,OPS,運用,Yes,プレイブック自動実行を確認する必要がある,PLANNED,TC-026-002,Recovery,Yes,,未取得,プレイブック実行履歴,2026-07-05,,SecOps,プレイブック自動実行
+INT-027,DATA,データ連携,Yes,UEBA向けイベントが継続的に取り込まれる必要がある,PLANNED,TC-027-001,Normal,Yes,,未取得,UEBAイベント取り込みログ,2026-07-05,,SecOps,UEBA向けイベント取り込み
+INT-027,MON,監視,Yes,ユーザー行動の異常検知結果を確認する必要がある,PLANNED,TC-027-002,Abnormal,Yes,,未取得,UEBA異常検知画面,2026-07-05,,SecOps,異常検知結果の確認`,
 };
 
 let state = {
   components: [],
   integrations: [],
   coverage: [],
+  proposalReview: null,
+  proposalModalOpen: false,
   selectedIntegrationId: "",
   selectedComponentName: "",
   editMode: false,
   pendingConnectionFrom: "",
+  pendingConnectionDirection: "output",
   editorMode: "",
   draggingComponentName: "",
   dragMoved: false,
   suppressNodeClickName: "",
+  detailModalOpen: false,
 };
 
 const elements = {
@@ -138,19 +154,36 @@ const elements = {
   exportCsvButton: document.getElementById("exportCsvButton"),
   importJsonButton: document.getElementById("importJsonButton"),
   jsonFileInput: document.getElementById("jsonFileInput"),
+  importProposalButton: document.getElementById("importProposalButton"),
+  exportProposalTemplateButton: document.getElementById("exportProposalTemplateButton"),
+  proposalFileInput: document.getElementById("proposalFileInput"),
   criticalityFilter: document.getElementById("criticalityFilter"),
   ownerFilter: document.getElementById("ownerFilter"),
   integrationTypeFilter: document.getElementById("integrationTypeFilter"),
   openOnlyFilter: document.getElementById("openOnlyFilter"),
+  showSecondaryFilter: document.getElementById("showSecondaryFilter"),
   summaryStrip: document.getElementById("summaryStrip"),
   mapSvg: document.getElementById("mapSvg"),
+  mapPanel: document.querySelector(".map-panel"),
   selectedDetail: document.getElementById("selectedDetail"),
   editorPanel: document.getElementById("editorPanel"),
+  detailModal: document.getElementById("detailModal"),
+  detailModalBackdrop: document.getElementById("detailModalBackdrop"),
+  closeDetailModalButton: document.getElementById("closeDetailModalButton"),
+  proposalModal: document.getElementById("proposalModal"),
+  proposalModalBackdrop: document.getElementById("proposalModalBackdrop"),
+  closeProposalModalButton: document.getElementById("closeProposalModalButton"),
+  proposalSummary: document.getElementById("proposalSummary"),
+  proposalReview: document.getElementById("proposalReview"),
+  proposalSelectAllButton: document.getElementById("proposalSelectAllButton"),
+  proposalClearAllButton: document.getElementById("proposalClearAllButton"),
+  applyProposalButton: document.getElementById("applyProposalButton"),
   riskTableBody: document.querySelector("#riskTable tbody"),
   coverageTable: document.getElementById("coverageTable"),
+  productMatrixTable: document.getElementById("productMatrixTable"),
 };
 
-elements.sampleButton.addEventListener("click", loadSample);
+elements.sampleButton.addEventListener("click", () => loadSample(false));
 elements.editModeButton.addEventListener("click", toggleEditMode);
 elements.addComponentButton.addEventListener("click", beginAddComponent);
 elements.startConnectionButton.addEventListener("click", toggleConnectionMode);
@@ -159,6 +192,9 @@ elements.exportJsonButton.addEventListener("click", exportJson);
 elements.exportCsvButton.addEventListener("click", exportCsvFiles);
 elements.importJsonButton.addEventListener("click", () => elements.jsonFileInput.click());
 elements.jsonFileInput.addEventListener("change", importJson);
+elements.importProposalButton.addEventListener("click", () => elements.proposalFileInput.click());
+elements.exportProposalTemplateButton.addEventListener("click", exportProposalTemplate);
+elements.proposalFileInput.addEventListener("change", importProposalJson);
 elements.componentsFile.addEventListener("change", loadUploadedFiles);
 elements.integrationsFile.addEventListener("change", loadUploadedFiles);
 elements.coverageFile.addEventListener("change", loadUploadedFiles);
@@ -166,10 +202,36 @@ elements.criticalityFilter.addEventListener("change", render);
 elements.ownerFilter.addEventListener("change", render);
 elements.integrationTypeFilter.addEventListener("change", render);
 elements.openOnlyFilter.addEventListener("change", render);
+elements.showSecondaryFilter.addEventListener("change", render);
+elements.closeDetailModalButton.addEventListener("click", closeDetailModal);
+elements.detailModalBackdrop.addEventListener("click", closeDetailModal);
+elements.closeProposalModalButton.addEventListener("click", closeProposalModal);
+elements.proposalModalBackdrop.addEventListener("click", closeProposalModal);
+elements.proposalSelectAllButton.addEventListener("click", () => toggleAllProposalSelections(true));
+elements.proposalClearAllButton.addEventListener("click", () => toggleAllProposalSelections(false));
+elements.applyProposalButton.addEventListener("click", applyProposalSelections);
+window.addEventListener("keydown", handleWindowKeydown);
 
-loadSample();
+initializeApp();
 
-async function loadSample() {
+async function initializeApp() {
+  if (loadSavedState()) {
+    hydrateOwnerFilter();
+    hydrateIntegrationTypeFilter();
+    render();
+    return;
+  }
+  await loadSample(false);
+}
+
+async function loadSample(preferSaved = false) {
+  if (preferSaved && loadSavedState()) {
+    hydrateOwnerFilter();
+    hydrateIntegrationTypeFilter();
+    render();
+    return;
+  }
+
   const loaded = await loadBundledCsv();
   if (loaded) {
     return;
@@ -179,14 +241,19 @@ async function loadSample() {
     components: parseCsv(sample.components),
     integrations: parseCsv(sample.integrations),
     coverage: parseCsv(sample.coverage),
+    proposalReview: null,
+    proposalModalOpen: false,
     selectedIntegrationId: "INT-006",
     selectedComponentName: "",
     editMode: false,
     pendingConnectionFrom: "",
+    pendingConnectionDirection: "output",
     editorMode: "",
+    detailModalOpen: false,
   };
   hydrateOwnerFilter();
   hydrateIntegrationTypeFilter();
+  persistState();
   render();
 }
 
@@ -198,18 +265,23 @@ async function loadBundledCsv() {
       fetch("../data/coverage_matrix.csv", { cache: "no-store" }).then(ensureOk).then((response) => response.text()),
     ]);
 
-    state = {
-      components: parseCsv(componentsText),
-      integrations: parseCsv(integrationsText),
-      coverage: parseCsv(coverageText),
-      selectedIntegrationId: "INT-006",
+      state = {
+        components: parseCsv(componentsText),
+        integrations: parseCsv(integrationsText),
+        coverage: parseCsv(coverageText),
+        proposalReview: null,
+        proposalModalOpen: false,
+        selectedIntegrationId: "INT-006",
       selectedComponentName: "",
       editMode: false,
       pendingConnectionFrom: "",
+      pendingConnectionDirection: "output",
       editorMode: "",
+      detailModalOpen: false,
     };
     hydrateOwnerFilter();
     hydrateIntegrationTypeFilter();
+    persistState();
     render();
     return true;
   } catch (error) {
@@ -240,24 +312,30 @@ async function loadUploadedFiles() {
     components: parseCsv(componentsText),
     integrations: parseCsv(integrationsText),
     coverage: parseCsv(coverageText),
+    proposalReview: null,
+    proposalModalOpen: false,
     selectedIntegrationId: "",
     selectedComponentName: "",
     editMode: false,
     pendingConnectionFrom: "",
+    pendingConnectionDirection: "output",
     editorMode: "",
+    detailModalOpen: false,
   };
   hydrateOwnerFilter();
   hydrateIntegrationTypeFilter();
+  persistState();
   render();
 }
 
 function render() {
+  const layoutBaseline = getFilteredIntegrations({ includeSecondary: true }).map(enrichIntegration);
   const enriched = getFilteredIntegrations().map(enrichIntegration);
   const displayIntegrations = getDisplayIntegrations(enriched);
   if (!enriched.some((row) => row.integration_id === state.selectedIntegrationId) && enriched[0]) {
     state.selectedIntegrationId = enriched[0].integration_id;
   }
-  if (state.selectedComponentName && !enriched.some(isRelatedToSelectedComponent)) {
+  if (state.selectedComponentName && !layoutBaseline.some(isRelatedToSelectedComponent)) {
     state.selectedComponentName = "";
   }
   if (!displayIntegrations.some((row) => row.integration_id === state.selectedIntegrationId) && displayIntegrations[0]) {
@@ -265,12 +343,15 @@ function render() {
   }
 
   renderSummary(displayIntegrations, enriched);
-  renderMap(enriched);
+  renderMap(enriched, layoutBaseline);
   renderDetail(displayIntegrations);
   renderEditorPanel(displayIntegrations);
   renderRiskTable(displayIntegrations);
   renderCoverageTable(displayIntegrations);
+  renderProductMatrixTable(displayIntegrations);
   renderControlState();
+  renderDetailModalState();
+  renderProposalModalState();
 }
 
 function hydrateOwnerFilter() {
@@ -287,11 +368,13 @@ function hydrateIntegrationTypeFilter() {
     .join("")}`;
 }
 
-function getFilteredIntegrations() {
+function getFilteredIntegrations(options = {}) {
   const criticality = elements.criticalityFilter.value;
   const owner = elements.ownerFilter.value;
   const integrationType = elements.integrationTypeFilter.value;
   const openOnly = elements.openOnlyFilter.checked;
+  const showSecondary = elements.showSecondaryFilter.checked;
+  const includeSecondary = options.includeSecondary === true;
 
   return state.integrations.filter((integration) => {
     const enriched = enrichIntegration(integration);
@@ -305,6 +388,9 @@ function getFilteredIntegrations() {
       return false;
     }
     if (openOnly && enriched.riskCount === 0) {
+      return false;
+    }
+    if (!includeSecondary && !showSecondary && getDiagramDefault(integration) === "secondary") {
       return false;
     }
     return true;
@@ -344,11 +430,13 @@ function renderSummary(integrations, allIntegrations) {
   const missingCoverageCount = integrations.filter((row) => row.missingCoverage).length;
   const evidenceMissingCount = integrations.reduce((sum, row) => sum + row.evidenceMissingCount, 0);
   const focusedLabel = state.selectedComponentName || "全体";
+  const secondaryHiddenCount = allIntegrations.filter((row) => getDiagramDefault(row) === "secondary").length - integrations.filter((row) => getDiagramDefault(row) === "secondary").length;
 
   const cards = [
     ["表示対象", focusedLabel],
     ["構成要素", componentNames.size],
     ["結合点", integrations.length],
+    ["補助連携非表示", Math.max(secondaryHiddenCount, 0)],
     ["要試験観点", requiredCount],
     ["未完了観点", openCount],
     ["証跡不足", evidenceMissingCount],
@@ -359,16 +447,16 @@ function renderSummary(integrations, allIntegrations) {
   elements.summaryStrip.innerHTML = cards
     .map(
       ([label, value]) => `
-        <article class="summary-card">
+        <article class="summary-card${typeof value === "string" ? " summary-card-text" : ""}" title="${escapeHtml(String(value))}">
           <div class="summary-label">${escapeHtml(label)}</div>
-          <div class="summary-value">${escapeHtml(String(value))}</div>
+          <div class="summary-value${typeof value === "string" ? " summary-value-text" : ""}">${escapeHtml(String(value))}</div>
         </article>
       `
     )
     .join("");
 }
 
-function renderMap(integrations) {
+function renderMap(integrations, baselineIntegrations = integrations) {
   const width = 1280;
   const height = 760;
   const domains = DOMAIN_ORDER;
@@ -376,9 +464,10 @@ function renderMap(integrations) {
   const componentsByName = new Map(state.components.map((component) => [component.component_name, component]));
   const visibleNames = state.editMode
     ? state.components.map((component) => component.component_name)
-    : Array.from(new Set(integrations.flatMap((row) => [row.from_component, row.to_component].filter(Boolean))));
+    : Array.from(new Set(baselineIntegrations.flatMap((row) => [row.from_component, row.to_component].filter(Boolean))));
   const grouped = groupBy(visibleNames, (name) => componentsByName.get(name)?.domain || "Operations");
   const positions = new Map();
+  const nodeMetrics = new Map(visibleNames.map((name) => [name, getNodeMetrics(name)]));
 
   domains.forEach((domain) => {
     const names = grouped.get(domain) || [];
@@ -395,17 +484,22 @@ function renderMap(integrations) {
     });
   });
 
-  const defs = `
-    <defs>
-      ${["High", "Medium", "Low"].map(
-        (level) => `
-          <marker id="arrow-${level}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
-            <path d="M0,0 L8,4 L0,8 z" fill="${criticalityColor(level)}"></path>
+    const defs = `
+      <defs>
+        ${["output", "input", "bidirectional"].flatMap((direction) => [
+          `
+          <marker id="arrow-core-${direction}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,4 L0,8 z" fill="${flowDirectionColor(direction)}"></path>
           </marker>
-        `
-      ).join("")}
-    </defs>
-  `;
+        `,
+          `
+          <marker id="arrow-secondary-${direction}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,4 L0,8 z" fill="${secondaryFlowDirectionColor(direction)}"></path>
+          </marker>
+        `,
+        ]).join("")}
+      </defs>
+    `;
 
   const domainLabels = domains
     .map((domain) => `<text x="${domainX.get(domain)}" y="42" text-anchor="middle" class="domain-label">${domain}</text>`)
@@ -415,32 +509,41 @@ function renderMap(integrations) {
     .map((row, index) => {
       const from = positions.get(row.from_component);
       const to = positions.get(row.to_component);
+      const fromMetrics = nodeMetrics.get(row.from_component);
+      const toMetrics = nodeMetrics.get(row.to_component);
       if (!from || !to) return "";
+      if (!fromMetrics || !toMetrics) return "";
 
       const midX = (from.x + to.x) / 2;
       const bendY = Math.min(from.y, to.y) - 54 - (index % 3) * 14;
-      const selected = state.selectedIntegrationId === row.integration_id;
-      const relatedToComponent = !state.selectedComponentName || isRelatedToSelectedComponent(row);
-      const color = criticalityColor(row.criticality);
-      const widthValue = selected ? 5.4 : relatedToComponent ? (row.riskCount > 0 ? 3.4 : 2.6) : 1.4;
-      const opacity = selected ? 1 : relatedToComponent ? 0.92 : 0.16;
-      const dangerMark = selected && row.riskCount > 0
+        const selected = state.selectedIntegrationId === row.integration_id;
+        const relatedToComponent = !state.selectedComponentName || isRelatedToSelectedComponent(row);
+        const diagramDefault = getDiagramDefault(row);
+        const secondary = diagramDefault === "secondary";
+        const flowDirection = normalizeFlowDirection(row.flow_direction);
+        const color = secondary ? secondaryFlowDirectionColor(flowDirection) : flowDirectionColor(flowDirection);
+        const widthValue = selected ? 5.4 : relatedToComponent ? (row.riskCount > 0 ? 3.4 : 2.6) : 1.4;
+        const opacity = selected ? 1 : relatedToComponent ? 0.92 : 0.16;
+        const dangerMark = selected && row.riskCount > 0
         ? `<circle cx="${midX}" cy="${bendY - 18}" r="9" fill="#b42318"></circle>
            <text x="${midX}" y="${bendY - 14}" text-anchor="middle" fill="#fff" font-size="10" font-weight="900">${row.riskCount}</text>`
         : "";
-      const edgeLabel = selected ? [row.integration_id, row.integration_type].filter(Boolean).join(" ") : "";
-      const edgeLabelMarkup = selected
-        ? `<text x="${midX}" y="${bendY - 28}" text-anchor="middle">${escapeHtml(edgeLabel)}</text>`
-        : "";
+        const edgeLabel = selected ? [row.integration_id, row.integration_type].filter(Boolean).join(" ") : "";
+          const edgeLabelMarkup = selected
+            ? `<text x="${midX}" y="${bendY - 28}" text-anchor="middle">${escapeHtml(edgeLabel)}</text>`
+            : "";
+          const markerRef = `url(#arrow-${secondary ? "secondary" : "core"}-${flowDirection})`;
+        const markerStart = flowDirection === "input" || flowDirection === "bidirectional" ? ` marker-start="${markerRef}"` : "";
+        const markerEnd = flowDirection === "output" || flowDirection === "bidirectional" ? ` marker-end="${markerRef}"` : "";
 
-      return `
-        <g class="edge ${relatedToComponent ? "edge-related" : "edge-muted"}" data-id="${escapeHtml(row.integration_id)}" tabindex="0">
-          <path d="M ${from.x + 72} ${from.y} C ${midX} ${bendY}, ${midX} ${bendY}, ${to.x - 72} ${to.y}"
-            stroke="${color}" stroke-width="${widthValue}" opacity="${opacity}" marker-end="url(#arrow-${row.criticality || "Low"})"></path>
-          ${edgeLabelMarkup}
-          ${dangerMark}
-        </g>
-      `;
+        return `
+          <g class="edge ${selected ? "edge-selected" : ""} ${secondary ? "edge-secondary" : "edge-core"} ${relatedToComponent ? "edge-related" : "edge-muted"}" data-id="${escapeHtml(row.integration_id)}" tabindex="0">
+            <path d="M ${from.x + fromMetrics.halfWidth} ${from.y} C ${midX} ${bendY}, ${midX} ${bendY}, ${to.x - toMetrics.halfWidth} ${to.y}"
+            stroke="${color}" stroke-width="${widthValue}" opacity="${opacity}"${markerStart}${markerEnd}></path>
+            ${edgeLabelMarkup}
+            ${dangerMark}
+          </g>
+        `;
     })
     .join("");
 
@@ -448,70 +551,85 @@ function renderMap(integrations) {
     .map((name) => {
       const pos = positions.get(name);
       const component = componentsByName.get(name) || {};
+      const metrics = nodeMetrics.get(name);
       if (!pos) return "";
+      if (!metrics) return "";
       const selected = state.selectedComponentName === name;
-      const related = !state.selectedComponentName || name === state.selectedComponentName || integrations.some((row) =>
+      const related = !state.selectedComponentName || name === state.selectedComponentName || baselineIntegrations.some((row) =>
         isComponentRelated(name, row)
       );
       return `
-        <g class="node ${selected ? "node-selected" : related ? "node-related" : "node-muted"} ${state.editMode ? "node-draggable" : ""}" data-name="${escapeHtml(name)}" tabindex="0" transform="translate(${pos.x - 72}, ${pos.y - 28})">
-          <rect width="144" height="56" rx="6"></rect>
-          <text x="72" y="25" text-anchor="middle">${escapeHtml(name)}</text>
-          <text class="domain" x="72" y="42" text-anchor="middle">${escapeHtml(component.owner || pos.domain)}</text>
+        <g class="node ${selected ? "node-selected" : related ? "node-related" : "node-muted"} ${state.editMode ? "node-draggable" : ""}" data-name="${escapeHtml(name)}" tabindex="0" transform="translate(${pos.x - metrics.halfWidth}, ${pos.y - 28})">
+          <rect width="${metrics.width}" height="56" rx="6"></rect>
+          <text x="${metrics.halfWidth}" y="25" text-anchor="middle">${escapeHtml(name)}</text>
+          <text class="domain" x="${metrics.halfWidth}" y="42" text-anchor="middle">${escapeHtml(component.owner || pos.domain)}</text>
         </g>
       `;
     })
     .join("");
 
-  elements.mapSvg.innerHTML = `${defs}${domainLabels}${edges}${nodes}`;
-  elements.mapSvg.querySelectorAll(".edge").forEach((edge) => {
-    const select = () => {
-      state.selectedIntegrationId = edge.dataset.id;
-      state.selectedComponentName = "";
-      state.editorMode = "";
-      render();
-    };
-    edge.addEventListener("click", select);
-    edge.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
+    elements.mapSvg.innerHTML = `${defs}${domainLabels}${edges}${nodes}`;
+    elements.mapSvg.querySelectorAll(".edge").forEach((edge) => {
+      const select = (openDetail = false) => {
+        state.selectedIntegrationId = edge.dataset.id;
+        state.selectedComponentName = "";
+        state.editorMode = "";
+        state.detailModalOpen = openDetail;
+        render();
+      };
+      edge.addEventListener("click", () => select(false));
+      edge.addEventListener("contextmenu", (event) => {
         event.preventDefault();
-        select();
-      }
-    });
-  });
-  elements.mapSvg.querySelectorAll(".node").forEach((node) => {
-    if (state.editMode) {
-      node.addEventListener("pointerdown", (event) => startNodeDrag(event, node.dataset.name));
-    }
-    const focus = () => {
-      const name = node.dataset.name;
-      if (state.suppressNodeClickName === name) {
-        state.suppressNodeClickName = "";
-        return;
-      }
-      if (state.editMode && state.pendingConnectionFrom) {
-        if (state.pendingConnectionFrom === name) {
-          state.pendingConnectionFrom = "";
-        } else {
-          createIntegrationBetween(state.pendingConnectionFrom, name);
-          state.pendingConnectionFrom = "";
-          state.selectedComponentName = "";
+        select(true);
+      });
+      edge.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          select(false);
         }
-      } else {
-        state.selectedComponentName = state.selectedComponentName === name ? "" : name;
-      }
-      state.editorMode = "";
-      render();
-    };
-    node.addEventListener("click", focus);
-    node.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        focus();
-      }
+      });
     });
-  });
-}
+    elements.mapSvg.querySelectorAll(".node").forEach((node) => {
+      if (state.editMode) {
+        node.addEventListener("pointerdown", (event) => startNodeDrag(event, node.dataset.name));
+      }
+      const focus = (openDetail = false) => {
+        const name = node.dataset.name;
+        if (state.suppressNodeClickName === name) {
+          state.suppressNodeClickName = "";
+          return;
+        }
+        if (state.editMode && state.pendingConnectionFrom) {
+          if (state.pendingConnectionFrom === name) {
+            state.pendingConnectionFrom = "";
+            state.pendingConnectionDirection = "output";
+          } else {
+            createIntegrationBetween(state.pendingConnectionFrom, name, state.pendingConnectionDirection);
+            state.pendingConnectionFrom = "";
+            state.pendingConnectionDirection = "output";
+            state.selectedComponentName = "";
+          }
+        } else {
+          state.selectedComponentName = state.selectedComponentName === name ? "" : name;
+          state.selectedIntegrationId = "";
+        }
+        state.editorMode = "";
+        state.detailModalOpen = openDetail && Boolean(state.selectedComponentName || state.selectedIntegrationId);
+        render();
+      };
+      node.addEventListener("click", () => focus(false));
+      node.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        focus(true);
+      });
+      node.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          focus(false);
+        }
+      });
+    });
+  }
 
 function renderDetail(integrations) {
   if (state.selectedComponentName) {
@@ -535,25 +653,26 @@ function renderDetail(integrations) {
         .join("")
     : `<span class="chip chip-pass">証跡不足なし</span>`;
 
-  elements.selectedDetail.innerHTML = `
-    <div class="detail-block">
-      <div class="detail-label">結合点</div>
-      <div class="detail-value">${escapeHtml(selected.integration_id)} / ${escapeHtml(selected.from_component)} -> ${escapeHtml(selected.to_component)}</div>
-    </div>
+    elements.selectedDetail.innerHTML = `
+      <div class="detail-block">
+        <div class="detail-label">結合点</div>
+        <div class="detail-value">${escapeHtml(selected.integration_id)} / ${escapeHtml(formatIntegrationLink(selected))}</div>
+      </div>
     <div class="detail-block">
       <div class="detail-label">シナリオ / 連携目的</div>
       <div class="detail-value">${escapeHtml(selected.business_scenario || "")}</div>
       <div>${escapeHtml(selected.purpose || "")}</div>
     </div>
-    <div class="detail-block">
-      <div class="detail-label">種別 / 方式 / 重要度 / 担当</div>
-      <div class="chip-row">
-        <span class="chip chip-low">${escapeHtml(selected.integration_type || "未分類")}</span>
-        <span class="chip chip-${criticalityToken(selected.criticality)}">${escapeHtml(selected.criticality || "")}</span>
-        <span class="chip chip-hold">${escapeHtml(formatProtocol(selected))}</span>
-        <span class="chip chip-hold">${escapeHtml(selected.owner || "")}</span>
+      <div class="detail-block">
+        <div class="detail-label">種別 / 向き / 方式 / 重要度 / 担当</div>
+        <div class="chip-row">
+          <span class="chip chip-low">${escapeHtml(selected.integration_type || "未分類")}</span>
+          <span class="chip chip-low">${escapeHtml(getFlowDirectionLabel(selected))}</span>
+          <span class="chip chip-${criticalityToken(selected.criticality)}">${escapeHtml(selected.criticality || "")}</span>
+          <span class="chip chip-hold">${escapeHtml(formatProtocol(selected))}</span>
+          <span class="chip chip-hold">${escapeHtml(selected.owner || "")}</span>
+        </div>
       </div>
-    </div>
     <div class="detail-block">
       <div class="detail-label">進捗 / 前提 / テスト日</div>
       <div class="chip-row">
@@ -598,10 +717,10 @@ function renderComponentDetail(integrations) {
   const relatedIntegrations = integrations.filter(isRelatedToSelectedComponent);
   const openCount = relatedIntegrations.reduce((sum, row) => sum + row.openCount, 0);
   const riskCount = relatedIntegrations.reduce((sum, row) => sum + row.riskCount, 0);
-  const owners = Array.from(new Set(relatedIntegrations.map((row) => row.owner).filter(Boolean))).join(" / ");
-  const relatedLabels = relatedIntegrations
-    .map((row) => `${row.integration_id}: ${row.from_component} -> ${row.to_component}`)
-    .join("<br>");
+    const owners = Array.from(new Set(relatedIntegrations.map((row) => row.owner).filter(Boolean))).join(" / ");
+    const relatedLabels = relatedIntegrations
+      .map((row) => `${row.integration_id}: ${formatIntegrationLink(row)} [${getFlowDirectionLabel(row)}]`)
+      .join("<br>");
 
   elements.selectedDetail.innerHTML = `
     <div class="detail-block">
@@ -634,18 +753,25 @@ function renderComponentDetail(integrations) {
 
 function renderEditorPanel(integrations) {
   if (!state.editMode) {
-    elements.editorPanel.innerHTML = "";
+    elements.editorPanel.innerHTML = `
+      <div class="detail-block">
+        <div class="detail-label">編集ガイド</div>
+        <div class="empty-state">編集モードを有効にすると、選択中の製品または連携線をここで直接編集できます。</div>
+      </div>
+    `;
     return;
   }
 
   const selectedComponent = state.components.find((row) => row.component_name === state.selectedComponentName);
   const selectedIntegration = state.integrations.find((row) => row.integration_id === state.selectedIntegrationId);
   const statusNote = state.pendingConnectionFrom
-    ? `接続開始元: ${state.pendingConnectionFrom}。接続先の製品ノードをクリックすると線を追加します。`
+    ? `接続開始元: ${state.pendingConnectionFrom} / 向き: ${getFlowDirectionLabel({ flow_direction: state.pendingConnectionDirection })}。接続先の製品ノードをクリックすると線を追加します。`
     : "編集モードです。製品を追加するか、製品詳細・結合点詳細を変更できます。";
 
   let body = `<p class="empty-state">製品または結合点を選択してください。</p>`;
-  if (state.editorMode === "new-component") {
+  if (state.pendingConnectionFrom) {
+    body = renderPendingConnectionForm();
+  } else if (state.editorMode === "new-component") {
     body = renderComponentForm();
   } else if (selectedComponent) {
     body = renderComponentForm(selectedComponent);
@@ -701,6 +827,32 @@ function renderComponentForm(component) {
   `;
 }
 
+function renderPendingConnectionForm() {
+  return `
+    <form id="pendingConnectionForm" class="editor-form">
+      <div class="editor-grid">
+        <label>
+          接続開始元
+          <input value="${escapeHtml(state.pendingConnectionFrom || "")}" disabled />
+        </label>
+        <label>
+          向き
+          <select name="pending_flow_direction">${renderFlowDirectionOptions(normalizeFlowDirection(state.pendingConnectionDirection))}</select>
+        </label>
+      </div>
+      <div class="detail-block">
+        <div class="detail-label">操作方法</div>
+        <div>地図上で接続先の製品をクリックすると線を追加します。</div>
+        <div class="empty-state">同じ製品をクリックするとキャンセルします。</div>
+      </div>
+      <div class="editor-actions">
+        <button type="submit">向きを更新</button>
+        <button type="button" id="cancelPendingConnectionButton">線追加を中止</button>
+      </div>
+    </form>
+  `;
+}
+
 function renderIntegrationForm(integration) {
   const coverageRows = state.coverage
     .filter((row) => row.integration_id === integration.integration_id)
@@ -708,23 +860,27 @@ function renderIntegrationForm(integration) {
 
   return `
     <form id="integrationEditForm" class="editor-form">
-      <div class="editor-grid">
-        <label>
-          接続元
-          <select name="from_component">${renderSelectOptions(state.components.map((row) => row.component_name), integration.from_component)}</select>
+        <div class="editor-grid">
+          <label>
+            接続元
+            <select name="from_component">${renderSelectOptions(state.components.map((row) => row.component_name), integration.from_component)}</select>
         </label>
         <label>
           接続先
           <select name="to_component">${renderSelectOptions(state.components.map((row) => row.component_name), integration.to_component)}</select>
         </label>
-        <label>
-          連携種別
-          <input name="integration_type" value="${escapeHtml(integration.integration_type || "")}" />
-        </label>
-        <label>
-          重要度
-          <select name="criticality">${renderSelectOptions(["High", "Medium", "Low"], integration.criticality)}</select>
-        </label>
+          <label>
+            連携種別
+            <input name="integration_type" value="${escapeHtml(integration.integration_type || "")}" />
+          </label>
+          <label>
+            向き
+            <select name="flow_direction">${renderFlowDirectionOptions(normalizeFlowDirection(integration.flow_direction))}</select>
+          </label>
+          <label>
+            重要度
+            <select name="criticality">${renderSelectOptions(["High", "Medium", "Low"], integration.criticality)}</select>
+          </label>
         <label>
           進捗
           <select name="lifecycle_stage">${renderSelectOptions(["設計中", "ケース作成済", "実施中", "完了", "要再試験"], integration.lifecycle_stage)}</select>
@@ -752,6 +908,10 @@ function renderIntegrationForm(integration) {
         <label>
           最終実施日
           <input name="last_tested_at" type="date" value="${escapeHtml(integration.last_tested_at || "")}" />
+        </label>
+        <label>
+          図の扱い
+          <select name="diagram_default">${renderSelectOptions(["core", "secondary"], getDiagramDefault(integration))}</select>
         </label>
       </div>
       <label>
@@ -869,12 +1029,19 @@ function bindEditorPanelEvents() {
     });
   }
 
+  const pendingConnectionForm = document.getElementById("pendingConnectionForm");
+  if (pendingConnectionForm) {
+    pendingConnectionForm.addEventListener("submit", savePendingConnectionSettings);
+    document.getElementById("cancelPendingConnectionButton")?.addEventListener("click", cancelPendingConnection);
+  }
+
   const componentForm = document.getElementById("componentEditForm");
   if (componentForm) {
     componentForm.addEventListener("submit", saveComponentEdits);
     document.getElementById("componentConnectButton")?.addEventListener("click", () => {
       if (!state.selectedComponentName) return;
       state.pendingConnectionFrom = state.selectedComponentName;
+      state.pendingConnectionDirection = "output";
       render();
     });
     document.getElementById("resetComponentPositionButton")?.addEventListener("click", resetSelectedComponentPosition);
@@ -905,12 +1072,12 @@ function renderRiskTable(integrations) {
   elements.riskTableBody.innerHTML = risks
     .map((row) => {
       const riskLabels = getRiskLabels(row).join(" / ");
-      return `
-        <tr>
-          <td>${escapeHtml(row.integration_id)}</td>
-          <td class="wrap">${escapeHtml(row.from_component)} -> ${escapeHtml(row.to_component)}<br>${escapeHtml(row.purpose || "")}</td>
-          <td>${escapeHtml(row.integration_type || "")}</td>
-          <td class="compact">${escapeHtml(row.lifecycle_stage || "")}</td>
+        return `
+          <tr>
+            <td>${escapeHtml(row.integration_id)}</td>
+            <td class="wrap">${escapeHtml(formatIntegrationLink(row))}<br>${escapeHtml(getFlowDirectionLabel(row))} / ${escapeHtml(row.purpose || "")}</td>
+            <td>${escapeHtml(row.integration_type || "")}</td>
+            <td class="compact">${escapeHtml(row.lifecycle_stage || "")}</td>
           <td><span class="chip chip-${criticalityToken(row.criticality)}">${escapeHtml(row.criticality || "")}</span></td>
           <td class="wrap">${escapeHtml(riskLabels)}</td>
           <td>${escapeHtml(row.owner || "")}</td>
@@ -936,7 +1103,74 @@ function renderCoverageTable(integrations) {
       }).join("");
       return `<tr><td>${escapeHtml(integration.integration_id)}</td><td class="compact">${escapeHtml(summarizeDepth(integration.coverageRows))}</td><td class="wrap">${escapeHtml(summarizeObservability(integration.coverageRows))}</td><td class="compact">${escapeHtml(summarizeLastTestedAt(integration.coverageRows))}</td><td class="compact">${escapeHtml(summarizeDefects(integration.coverageRows))}</td>${cells}</tr>`;
     })
+      .join("");
+}
+
+function renderProductMatrixTable(integrations) {
+  const thead = elements.productMatrixTable.querySelector("thead");
+  const tbody = elements.productMatrixTable.querySelector("tbody");
+  const componentNames = Array.from(
+    new Set(integrations.flatMap((row) => [row.from_component, row.to_component]).filter(Boolean))
+  ).sort((a, b) => compareComponentNames(a, b));
+
+  if (!componentNames.length) {
+    thead.innerHTML = "";
+    tbody.innerHTML = `<tr><td class="empty-state">表示対象の連携がありません。</td></tr>`;
+    return;
+  }
+
+  thead.innerHTML = `
+    <tr>
+      <th class="matrix-corner">製品</th>
+      ${componentNames.map((name) => `<th class="matrix-col-head">${escapeHtml(name)}</th>`).join("")}
+    </tr>
+  `;
+
+  tbody.innerHTML = componentNames
+    .map((rowName) => {
+      const cells = componentNames
+        .map((colName) => renderProductMatrixCell(rowName, colName, integrations))
+        .join("");
+      return `<tr><th class="matrix-row-head">${escapeHtml(rowName)}</th>${cells}</tr>`;
+    })
     .join("");
+
+  elements.productMatrixTable.querySelectorAll("[data-matrix-integration-id]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const integrationId = button.dataset.matrixIntegrationId;
+        if (!integrationId) return;
+        state.selectedIntegrationId = integrationId;
+        state.selectedComponentName = "";
+        state.editorMode = "";
+        state.detailModalOpen = false;
+        render();
+        jumpToMapPanel();
+      });
+    });
+}
+
+function renderProductMatrixCell(rowName, colName, integrations) {
+  if (rowName === colName) {
+    return `<td class="matrix-cell is-diagonal">-</td>`;
+  }
+
+  const matches = integrations.filter(
+    (row) =>
+      (row.from_component === rowName && row.to_component === colName) ||
+      (row.from_component === colName && row.to_component === rowName)
+  );
+  if (!matches.length) {
+    return `<td class="matrix-cell"></td>`;
+  }
+
+  const primary = matches[0];
+  const label = matches.map((row) => `${row.integration_id}: ${formatIntegrationLink(row)}`).join("\n");
+  const mark = matches.length > 1 ? `○${matches.length}` : "○";
+  return `
+    <td class="matrix-cell has-link">
+      <button type="button" data-matrix-integration-id="${escapeHtml(primary.integration_id)}" title="${escapeHtml(label)}">${escapeHtml(mark)}</button>
+    </td>
+  `;
 }
 
 function getDisplayIntegrations(integrations) {
@@ -946,13 +1180,23 @@ function getDisplayIntegrations(integrations) {
   return integrations.filter(isRelatedToSelectedComponent);
 }
 
+function compareComponentNames(leftName, rightName) {
+  const leftComponent = state.components.find((row) => row.component_name === leftName) || { component_name: leftName, domain: "Operations" };
+  const rightComponent = state.components.find((row) => row.component_name === rightName) || { component_name: rightName, domain: "Operations" };
+  return compareComponentsForLayout(leftComponent, rightComponent);
+}
+
+function jumpToMapPanel() {
+  elements.mapPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function renderControlState() {
   elements.editModeButton.textContent = state.editMode ? "編集モード終了" : "編集モード開始";
   elements.addComponentButton.disabled = !state.editMode;
   elements.startConnectionButton.disabled = !state.editMode || !state.selectedComponentName;
   elements.autoLayoutButton.disabled = !state.editMode;
   elements.startConnectionButton.textContent = state.pendingConnectionFrom
-    ? `接続先を選択中: ${state.pendingConnectionFrom}`
+    ? `接続先を選択中: ${state.pendingConnectionFrom} (${getFlowDirectionLabel({ flow_direction: state.pendingConnectionDirection })})`
     : "線を引く";
 }
 
@@ -984,6 +1228,7 @@ function startNodeDrag(event, componentName) {
     window.removeEventListener("pointercancel", onUp);
     if (state.dragMoved) {
       state.suppressNodeClickName = componentName;
+      persistState();
     }
     state.draggingComponentName = "";
     state.dragMoved = false;
@@ -997,7 +1242,9 @@ function startNodeDrag(event, componentName) {
 function toggleEditMode() {
   state.editMode = !state.editMode;
   state.pendingConnectionFrom = "";
+  state.pendingConnectionDirection = "output";
   state.editorMode = "";
+  state.detailModalOpen = state.editMode && Boolean(state.selectedComponentName || state.selectedIntegrationId);
   render();
 }
 
@@ -1006,13 +1253,21 @@ function beginAddComponent() {
   state.selectedComponentName = "";
   state.selectedIntegrationId = "";
   state.editorMode = "new-component";
+  state.detailModalOpen = true;
   render();
 }
 
 function toggleConnectionMode() {
   if (!state.editMode || !state.selectedComponentName) return;
-  state.pendingConnectionFrom = state.pendingConnectionFrom ? "" : state.selectedComponentName;
+  if (state.pendingConnectionFrom) {
+    state.pendingConnectionFrom = "";
+    state.pendingConnectionDirection = "output";
+  } else {
+    state.pendingConnectionFrom = state.selectedComponentName;
+    state.pendingConnectionDirection = "output";
+  }
   state.editorMode = "";
+  state.detailModalOpen = true;
   render();
 }
 
@@ -1034,6 +1289,7 @@ function autoArrangeComponents() {
       pos_y: String(Math.round(startY + index * 112)),
     };
   });
+  persistState();
   render();
 }
 
@@ -1051,6 +1307,8 @@ function saveNewComponent(event) {
   state.components = [...state.components, component];
   state.selectedComponentName = component.component_name;
   state.editorMode = "";
+  state.detailModalOpen = true;
+  persistState();
   render();
 }
 
@@ -1083,6 +1341,8 @@ function saveComponentEdits(event) {
     state.pendingConnectionFrom = nextName;
   }
   state.selectedComponentName = nextName;
+  state.detailModalOpen = true;
+  persistState();
   render();
 }
 
@@ -1097,6 +1357,7 @@ function resetSelectedComponentPosition() {
         }
       : row
   );
+  persistState();
   render();
 }
 
@@ -1109,10 +1370,11 @@ function saveIntegrationEdits(event) {
     row.integration_id === integrationId
       ? {
           ...row,
-          from_component: String(formData.get("from_component") || row.from_component).trim(),
-          to_component: String(formData.get("to_component") || row.to_component).trim(),
-          integration_type: String(formData.get("integration_type") || row.integration_type).trim(),
-          business_scenario: String(formData.get("business_scenario") || "").trim(),
+            from_component: String(formData.get("from_component") || row.from_component).trim(),
+            to_component: String(formData.get("to_component") || row.to_component).trim(),
+            flow_direction: normalizeFlowDirection(formData.get("flow_direction") || row.flow_direction),
+            integration_type: String(formData.get("integration_type") || row.integration_type).trim(),
+            business_scenario: String(formData.get("business_scenario") || "").trim(),
           purpose: String(formData.get("purpose") || "").trim(),
           protocol: String(formData.get("protocol") || "").trim(),
           port: String(formData.get("port") || "").trim(),
@@ -1123,10 +1385,28 @@ function saveIntegrationEdits(event) {
           provider_team: String(formData.get("provider_team") || "").trim(),
           observability_point: String(formData.get("observability_point") || "").trim(),
           last_tested_at: String(formData.get("last_tested_at") || "").trim(),
+          diagram_default: String(formData.get("diagram_default") || getDiagramDefault(row)).trim(),
           notes: String(formData.get("notes") || "").trim(),
         }
       : row
   );
+  state.detailModalOpen = true;
+  persistState();
+  render();
+}
+
+function savePendingConnectionSettings(event) {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  state.pendingConnectionDirection = normalizeFlowDirection(formData.get("pending_flow_direction") || state.pendingConnectionDirection);
+  state.detailModalOpen = true;
+  render();
+}
+
+function cancelPendingConnection() {
+  state.pendingConnectionFrom = "";
+  state.pendingConnectionDirection = "output";
+  state.detailModalOpen = true;
   render();
 }
 
@@ -1166,20 +1446,532 @@ async function importJson(event) {
   state.selectedComponentName = "";
   state.selectedIntegrationId = state.integrations[0]?.integration_id || "";
   state.pendingConnectionFrom = "";
+  state.pendingConnectionDirection = "output";
   state.editorMode = "";
+  state.detailModalOpen = false;
   hydrateOwnerFilter();
   hydrateIntegrationTypeFilter();
+  persistState();
   render();
   event.target.value = "";
 }
 
-function createIntegrationBetween(fromComponent, toComponent) {
+async function importProposalJson(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    state.proposalReview = buildProposalReview(parsed);
+    state.proposalModalOpen = true;
+    render();
+  } catch (error) {
+    window.alert("提案JSONを読み込めませんでした。JSON形式を確認してください。");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function buildProposalReview(parsed) {
+  const summary = parsed?.summary || {};
+  const requestedProducts = Array.isArray(summary.requested_products) ? summary.requested_products : [];
+  const duplicateCandidates = Array.isArray(summary.duplicate_candidates) ? summary.duplicate_candidates : [];
+  const assumptions = Array.isArray(summary.assumptions) ? summary.assumptions : [];
+  const reviewPoints = Array.isArray(parsed?.review_points) ? parsed.review_points : [];
+
+  const existingComponentNames = new Set(state.components.map((row) => row.component_name));
+  const existingIntegrationKeys = new Set(
+    state.integrations.map((row) => getIntegrationDuplicateKey(row))
+  );
+
+  const components = (Array.isArray(parsed?.components_to_add) ? parsed.components_to_add : []).map((item, index) => {
+    const componentName = String(item.component_name || "").trim();
+    const domain = String(item.domain || "Operations").trim() || "Operations";
+    const invalidDomain = !DOMAIN_ORDER.includes(domain);
+    const duplicate = !componentName || existingComponentNames.has(componentName);
+    const missingRequired = !componentName;
+    const hasValidationIssue = invalidDomain;
+    return {
+      id: `component-${index + 1}`,
+      type: "component",
+      selected: !duplicate && !missingRequired && !hasValidationIssue,
+      disabled: duplicate || missingRequired || hasValidationIssue,
+      duplicate,
+      missingRequired,
+      invalidDomain,
+      title: componentName || `製品 ${index + 1}`,
+      description: item.description || "",
+      reason: item.reason || "",
+      payload: {
+        component_name: componentName,
+        domain,
+        owner: String(item.owner || "TBD").trim() || "TBD",
+        description: String(item.description || "").trim(),
+      },
+    };
+  });
+
+  const integrationKeyToProposalId = new Map();
+  const integrations = (Array.isArray(parsed?.integrations_to_add) ? parsed.integrations_to_add : []).map((item, index) => {
+    const rawFlowDirection = String(item.flow_direction || "").trim();
+    const flowDirection = normalizeFlowDirection(item.flow_direction);
+    const rawCriticality = String(item.criticality || "").trim();
+    const rawDiagramDefault = String(item.diagram_default || "").trim();
+    const payload = {
+      proposal_key: String(item.integration_ref || item.proposal_key || `proposal-int-${index + 1}`).trim(),
+      from_component: String(item.from_component || "").trim(),
+      to_component: String(item.to_component || "").trim(),
+      flow_direction: flowDirection,
+      integration_type: String(item.integration_type || "未分類").trim() || "未分類",
+      business_scenario: String(item.business_scenario || "").trim(),
+      purpose: String(item.purpose || "").trim(),
+      protocol_or_method: String(item.protocol_or_method || "TBD").trim() || "TBD",
+      protocol: String(item.protocol || "TBD").trim() || "TBD",
+      port: String(item.port || "TBD").trim() || "TBD",
+      environment: String(item.environment || "IT").trim() || "IT",
+      criticality: normalizeCriticality(item.criticality),
+      owner: String(item.owner || "TBD").trim() || "TBD",
+      lifecycle_stage: "設計中",
+      prerequisite_integration_id: "",
+      consumer_team: String(item.consumer_team || "TBD").trim() || "TBD",
+      provider_team: String(item.provider_team || "TBD").trim() || "TBD",
+      review_status: "Open",
+      expected_evidence: "未設定",
+      observability_point: String(item.observability_point || "TBD").trim() || "TBD",
+      last_tested_at: "",
+      failure_impact: String(item.failure_impact || "TBD").trim() || "TBD",
+      diagram_default: normalizeDiagramDefault(item.diagram_default),
+      notes: String(item.notes || "").trim(),
+    };
+    const missingRequired = !payload.from_component || !payload.to_component;
+    const duplicate = missingRequired || existingIntegrationKeys.has(getIntegrationDuplicateKey(payload));
+    const invalidFlowDirection = Boolean(rawFlowDirection) && !VALID_FLOW_DIRECTIONS.includes(rawFlowDirection.toLowerCase());
+    const invalidCriticality = Boolean(rawCriticality) && !VALID_CRITICALITIES.includes(rawCriticality);
+    const invalidDiagramDefault = Boolean(rawDiagramDefault) && !VALID_DIAGRAM_DEFAULTS.includes(rawDiagramDefault.toLowerCase());
+    const hasValidationIssue = invalidFlowDirection || invalidCriticality || invalidDiagramDefault;
+    const proposalId = `integration-${index + 1}`;
+    integrationKeyToProposalId.set(payload.proposal_key, proposalId);
+    return {
+      id: proposalId,
+      type: "integration",
+      selected: !duplicate && !hasValidationIssue,
+      disabled: duplicate || hasValidationIssue,
+      duplicate,
+      missingRequired,
+      invalidFlowDirection,
+      invalidCriticality,
+      invalidDiagramDefault,
+      missingComponents: false,
+      title: formatIntegrationLink(payload),
+      description: payload.purpose,
+      reason: item.reason || "",
+      payload,
+    };
+  });
+
+  const enabledIntegrationIds = new Set(integrations.filter((item) => !item.disabled).map((item) => item.id));
+  const coverage = (Array.isArray(parsed?.coverage_to_add) ? parsed.coverage_to_add : []).map((item, index) => {
+    const integrationRef = String(item.integration_ref || "").trim();
+    const parentProposalId = integrationKeyToProposalId.get(integrationRef);
+    const missingParent = !parentProposalId || !enabledIntegrationIds.has(parentProposalId);
+    const rawStatus = String(item.status || "").trim();
+    const rawRequired = String(item.required || "Yes").trim() || "Yes";
+    const invalidStatus = Boolean(rawStatus) && !STATUS_PRIORITY.includes(normalizeStatus(rawStatus));
+    const invalidRequired = !["yes", "no"].includes(rawRequired.toLowerCase());
+    const missingRequired = !integrationRef;
+    const hasValidationIssue = invalidStatus || invalidRequired || missingRequired;
+    return {
+      id: `coverage-${index + 1}`,
+      type: "coverage",
+      selected: !missingParent && !hasValidationIssue,
+      disabled: missingParent || hasValidationIssue,
+      duplicate: false,
+      missingParent,
+      missingRequired,
+      invalidStatus,
+      invalidRequired,
+      title: `${integrationRef || "未参照"} / ${String(item.viewpoint_code || "").trim() || `観点 ${index + 1}`}`,
+      description: String(item.required_reason || "").trim(),
+      reason: "",
+      payload: {
+        integration_ref: integrationRef,
+        viewpoint_code: String(item.viewpoint_code || "").trim() || `VP${index + 1}`,
+        viewpoint_name: String(item.viewpoint_name || "").trim() || "新規観点",
+        required: String(item.required || "Yes").trim() || "Yes",
+        required_reason: String(item.required_reason || "").trim(),
+        status: normalizeStatus(item.status || "PLANNED"),
+        test_case_id: "",
+        test_depth: String(item.test_depth || "Normal").trim() || "Normal",
+        evidence_required: String(item.evidence_required || "Yes").trim() || "Yes",
+        evidence_id: "",
+        evidence_status: "未取得",
+        observability_point: String(item.observability_point || "TBD").trim() || "TBD",
+        last_tested_at: "",
+        defect_id: "",
+        owner: String(item.owner || "TBD").trim() || "TBD",
+        remarks: String(item.remarks || "").trim(),
+      },
+    };
+  });
+
+  return {
+    requestedProducts,
+    duplicateCandidates,
+    assumptions,
+    reviewPoints,
+    items: {
+      components,
+      integrations,
+      coverage,
+    },
+  };
+}
+
+function normalizeCriticality(value) {
+  const text = String(value || "").trim();
+  return VALID_CRITICALITIES.includes(text) ? text : "Medium";
+}
+
+function normalizeDiagramDefault(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text === "secondary" ? "secondary" : "core";
+}
+
+function exportProposalTemplate() {
+  const content = JSON.stringify(buildProposalTemplate(), null, 2);
+  downloadFile("proposal-template.json", `${content}\r\n`, "application/json");
+}
+
+function buildProposalTemplate() {
+  const existingNames = state.components.map((row) => row.component_name).filter(Boolean).sort((a, b) => a.localeCompare(b, "ja"));
+  const exampleFrom = existingNames[0] || "Active Directory";
+  const exampleTo = existingNames[1] || "新規製品名";
+  return {
+    summary: {
+      requested_products: [""],
+      duplicate_candidates: [],
+      assumptions: [
+        "未確定の値は TBD または空欄で残し、レビューで補完する",
+        "flow_direction は input / output / bidirectional のいずれかを指定する",
+      ],
+    },
+    components_to_add: [
+      {
+        component_name: "",
+        domain: "Identity",
+        owner: "TBD",
+        description: "",
+        reason: "新製品追加の理由を記載",
+      },
+    ],
+    integrations_to_add: [
+      {
+        proposal_key: "NEW-INT-001",
+        from_component: exampleFrom,
+        to_component: exampleTo,
+        flow_direction: "output",
+        integration_type: "",
+        business_scenario: "",
+        purpose: "",
+        protocol_or_method: "TBD",
+        protocol: "TBD",
+        port: "TBD",
+        environment: "IT",
+        criticality: "Medium",
+        owner: "TBD",
+        consumer_team: "TBD",
+        provider_team: "TBD",
+        observability_point: "TBD",
+        failure_impact: "TBD",
+        diagram_default: "core",
+        notes: "",
+        reason: "連携追加の理由を記載",
+      },
+    ],
+    coverage_to_add: [
+      {
+        integration_ref: "NEW-INT-001",
+        viewpoint_code: "NET",
+        viewpoint_name: "通信",
+        required: "Yes",
+        required_reason: "",
+        status: "PLANNED",
+        test_depth: "Normal",
+        evidence_required: "Yes",
+        owner: "TBD",
+        observability_point: "TBD",
+        remarks: "",
+      },
+    ],
+    review_points: [
+      "domain は既存カテゴリから選ぶ",
+      "製品名は画面上の表記と完全一致させる",
+      "criticality と diagram_default は図示よりレビュー優先で決める",
+    ],
+  };
+}
+
+function getIntegrationDuplicateKey(row) {
+  return [
+    String(row.from_component || "").trim(),
+    String(row.to_component || "").trim(),
+    normalizeFlowDirection(row.flow_direction),
+    String(row.integration_type || "").trim(),
+  ].join("|");
+}
+
+function renderProposalModalState() {
+  const shouldOpen = state.proposalModalOpen && Boolean(state.proposalReview);
+  elements.proposalModal.classList.toggle("is-open", shouldOpen);
+  elements.proposalModal.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
+  if (!shouldOpen) {
+    return;
+  }
+  renderProposalReview();
+}
+
+function renderProposalReview() {
+  const review = state.proposalReview;
+  if (!review) {
+    elements.proposalSummary.innerHTML = "";
+    elements.proposalReview.innerHTML = "";
+    return;
+  }
+  recalculateProposalDependencies();
+  const itemGroups = review.items;
+  const total = itemGroups.components.length + itemGroups.integrations.length + itemGroups.coverage.length;
+  const selected = [...itemGroups.components, ...itemGroups.integrations, ...itemGroups.coverage].filter((item) => item.selected && !item.disabled).length;
+  elements.proposalSummary.innerHTML = `
+    <div class="detail-block">
+      <div class="detail-label">対象製品</div>
+      <div>${escapeHtml(review.requestedProducts.join(" / ") || "未指定")}</div>
+    </div>
+    <div class="detail-block">
+      <div class="detail-label">レビュー件数</div>
+      <div>${escapeHtml(String(total))} 件中 ${escapeHtml(String(selected))} 件を反映予定</div>
+    </div>
+    <div class="detail-block">
+      <div class="detail-label">重複候補</div>
+      <div>${escapeHtml(review.duplicateCandidates.join(" / ") || "なし")}</div>
+    </div>
+  `;
+  elements.proposalReview.innerHTML = [
+    renderProposalSection("製品追加", itemGroups.components),
+    renderProposalSection("連携追加", itemGroups.integrations),
+    renderProposalSection("観点追加", itemGroups.coverage),
+    renderProposalNotes(review.assumptions, review.reviewPoints),
+  ].join("");
+  bindProposalReviewEvents();
+}
+
+function renderProposalSection(title, items) {
+  if (!items.length) {
+    return `
+      <section class="proposal-section">
+        <div class="panel-title"><h3>${escapeHtml(title)}</h3></div>
+        <p class="empty-state">提案はありません。</p>
+      </section>
+    `;
+  }
+  return `
+    <section class="proposal-section">
+      <div class="panel-title"><h3>${escapeHtml(title)}</h3></div>
+      <div class="proposal-list">
+        ${items
+          .map(
+            (item) => `
+              <label class="proposal-item ${item.disabled ? "is-disabled" : ""}">
+                <input type="checkbox" data-proposal-item-id="${escapeHtml(item.id)}"${item.selected ? " checked" : ""}${item.disabled ? " disabled" : ""} />
+                <div class="proposal-item-body">
+                  <div class="proposal-item-title">${escapeHtml(item.title)}</div>
+                  <div class="proposal-item-meta">
+                    ${item.duplicate ? '<span class="chip chip-hold">重複候補</span>' : ""}
+                    ${item.missingRequired ? '<span class="chip chip-hold">必須不足</span>' : ""}
+                    ${item.invalidDomain ? '<span class="chip chip-hold">カテゴリ不正</span>' : ""}
+                    ${item.invalidFlowDirection ? '<span class="chip chip-hold">方向不正</span>' : ""}
+                    ${item.invalidCriticality ? '<span class="chip chip-hold">重要度不正</span>' : ""}
+                    ${item.invalidDiagramDefault ? '<span class="chip chip-hold">主補不正</span>' : ""}
+                    ${item.invalidStatus ? '<span class="chip chip-hold">進捗不正</span>' : ""}
+                    ${item.invalidRequired ? '<span class="chip chip-hold">required不正</span>' : ""}
+                    ${item.missingComponents ? '<span class="chip chip-hold">製品未選択</span>' : ""}
+                    ${item.missingParent ? '<span class="chip chip-hold">参照連携なし</span>' : ""}
+                  </div>
+                  <div>${escapeHtml(item.description || "")}</div>
+                  ${item.reason ? `<div class="empty-state">理由: ${escapeHtml(item.reason)}</div>` : ""}
+                </div>
+              </label>
+            `
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderProposalNotes(assumptions, reviewPoints) {
+  return `
+    <section class="proposal-section">
+      <div class="panel-title"><h3>前提と確認点</h3></div>
+      <div class="detail-block">
+        <div class="detail-label">LLM前提</div>
+        <div>${assumptions.length ? assumptions.map((item) => escapeHtml(item)).join("<br>") : "なし"}</div>
+      </div>
+      <div class="detail-block">
+        <div class="detail-label">レビュー観点</div>
+        <div>${reviewPoints.length ? reviewPoints.map((item) => escapeHtml(item)).join("<br>") : "なし"}</div>
+      </div>
+    </section>
+  `;
+}
+
+function bindProposalReviewEvents() {
+  elements.proposalReview.querySelectorAll("[data-proposal-item-id]").forEach((input) => {
+    input.addEventListener("change", () => {
+      setProposalItemSelected(input.dataset.proposalItemId, input.checked);
+    });
+  });
+}
+
+function setProposalItemSelected(itemId, selected) {
+  if (!state.proposalReview) return;
+  for (const groupName of ["components", "integrations", "coverage"]) {
+    const group = state.proposalReview.items[groupName];
+    const target = group.find((item) => item.id === itemId);
+    if (target && !target.disabled) {
+      target.selected = selected;
+      renderProposalReview();
+      return;
+    }
+  }
+}
+
+function toggleAllProposalSelections(selected) {
+  if (!state.proposalReview) return;
+  ["components", "integrations", "coverage"].forEach((groupName) => {
+    state.proposalReview.items[groupName].forEach((item) => {
+      if (!item.disabled) {
+        item.selected = selected;
+      }
+    });
+  });
+  renderProposalReview();
+}
+
+function recalculateProposalDependencies() {
+  const review = state.proposalReview;
+  if (!review) return;
+  const selectedComponentNames = new Set([
+    ...state.components.map((row) => row.component_name),
+    ...review.items.components.filter((item) => item.selected && !item.duplicate).map((item) => item.payload.component_name),
+  ]);
+  review.items.integrations.forEach((item) => {
+    item.missingComponents =
+      !selectedComponentNames.has(item.payload.from_component) || !selectedComponentNames.has(item.payload.to_component);
+    item.disabled =
+      item.duplicate ||
+      item.missingRequired ||
+      item.missingComponents ||
+      item.invalidFlowDirection ||
+      item.invalidCriticality ||
+      item.invalidDiagramDefault;
+    if (item.disabled) {
+      item.selected = false;
+    }
+  });
+  const selectedIntegrationRefs = new Set(
+    review.items.integrations.filter((item) => item.selected && !item.disabled).map((item) => item.payload.proposal_key)
+  );
+  review.items.coverage.forEach((item) => {
+    item.missingParent = !selectedIntegrationRefs.has(item.payload.integration_ref);
+    item.disabled = item.missingParent || item.missingRequired || item.invalidStatus || item.invalidRequired;
+    if (item.disabled) {
+      item.selected = false;
+    }
+  });
+}
+
+function applyProposalSelections() {
+  const review = state.proposalReview;
+  if (!review) return;
+
+  const selectedComponents = review.items.components.filter((item) => item.selected && !item.disabled);
+  const selectedIntegrations = review.items.integrations.filter((item) => item.selected && !item.disabled);
+  const selectedCoverage = review.items.coverage.filter((item) => item.selected && !item.disabled);
+
+  let nextComponentNumber = state.components.map((row) => row.component_id);
+  const materializedComponents = selectedComponents.map((item) => {
+    const component = {
+      component_id: nextId("CMP", nextComponentNumber),
+      ...item.payload,
+    };
+    nextComponentNumber = [...nextComponentNumber, component.component_id];
+    return component;
+  });
+  state.components = [...state.components, ...materializedComponents];
+
+  let integrationIds = state.integrations.map((row) => row.integration_id);
+  const integrationRefMap = new Map();
+  const materializedIntegrations = selectedIntegrations.map((item) => {
+    const integrationId = nextId("INT", integrationIds);
+    integrationIds = [...integrationIds, integrationId];
+    integrationRefMap.set(item.payload.proposal_key, integrationId);
+    const { proposal_key, ...integrationPayload } = item.payload;
+    return {
+      integration_id: integrationId,
+      ...integrationPayload,
+    };
+  });
+  state.integrations = [...state.integrations, ...materializedIntegrations];
+
+  const materializedCoverage = selectedCoverage
+    .map((item) => {
+      const integrationId = integrationRefMap.get(item.payload.integration_ref);
+      if (!integrationId) return null;
+      return {
+        integration_id: integrationId,
+        viewpoint_code: item.payload.viewpoint_code,
+        viewpoint_name: item.payload.viewpoint_name,
+        required: item.payload.required,
+        required_reason: item.payload.required_reason,
+        status: item.payload.status,
+        test_case_id: item.payload.test_case_id,
+        test_depth: item.payload.test_depth,
+        evidence_required: item.payload.evidence_required,
+        evidence_id: item.payload.evidence_id,
+        evidence_status: item.payload.evidence_status,
+        observability_point: item.payload.observability_point,
+        last_tested_at: item.payload.last_tested_at,
+        defect_id: item.payload.defect_id,
+        owner: item.payload.owner,
+        remarks: item.payload.remarks,
+      };
+    })
+    .filter(Boolean);
+  state.coverage = [...state.coverage, ...materializedCoverage];
+
+  hydrateOwnerFilter();
+  hydrateIntegrationTypeFilter();
+  state.proposalReview = null;
+  state.proposalModalOpen = false;
+  state.selectedComponentName = materializedComponents[0]?.component_name || state.selectedComponentName;
+  state.selectedIntegrationId = materializedIntegrations[0]?.integration_id || state.selectedIntegrationId;
+  persistState();
+  render();
+}
+
+function closeProposalModal() {
+  state.proposalModalOpen = false;
+  render();
+}
+
+function createIntegrationBetween(fromComponent, toComponent, flowDirection = "output") {
   const integrationId = nextId("INT", state.integrations.map((row) => row.integration_id));
   const integration = {
-    integration_id: integrationId,
-    from_component: fromComponent,
-    to_component: toComponent,
-    integration_type: "未分類",
+      integration_id: integrationId,
+      from_component: fromComponent,
+      to_component: toComponent,
+      flow_direction: normalizeFlowDirection(flowDirection),
+      integration_type: "未分類",
     business_scenario: `${fromComponent} と ${toComponent} の仮連携`,
     purpose: "GUIで追加した仮連携",
     protocol_or_method: "TBD",
@@ -1197,6 +1989,7 @@ function createIntegrationBetween(fromComponent, toComponent) {
     observability_point: "未設定",
     last_tested_at: "",
     failure_impact: "未設定",
+    diagram_default: "core",
     notes: "GUIで追加した連携",
   };
   state.integrations = [...state.integrations, integration];
@@ -1204,12 +1997,15 @@ function createIntegrationBetween(fromComponent, toComponent) {
   hydrateOwnerFilter();
   hydrateIntegrationTypeFilter();
   state.selectedIntegrationId = integrationId;
+  state.detailModalOpen = true;
+  persistState();
 }
 
 function addCoverageRowToSelectedIntegration() {
   if (!state.selectedIntegrationId) return;
   const integration = state.integrations.find((row) => row.integration_id === state.selectedIntegrationId);
   state.coverage = [...state.coverage, createCoverageRow(state.selectedIntegrationId, nextCoverageCode(), "新規観点", integration?.owner || "", "GUIで追加した観点")];
+  persistState();
   render();
 }
 
@@ -1246,6 +2042,7 @@ function saveCoverageEdits(event) {
     updateIndex += 1;
     return nextRow;
   });
+  persistState();
   render();
 }
 
@@ -1259,6 +2056,7 @@ function deleteCoverageRowAt(indexToDelete) {
     currentIndex += 1;
     return currentIndex !== indexToDelete;
   });
+  persistState();
   render();
 }
 
@@ -1349,9 +2147,128 @@ function inferOwner(fromComponent, toComponent) {
   );
 }
 
+function loadSavedState() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed.components) || !Array.isArray(parsed.integrations) || !Array.isArray(parsed.coverage)) {
+      return false;
+    }
+      state = {
+        ...state,
+        components: parsed.components,
+        integrations: parsed.integrations,
+        coverage: parsed.coverage,
+        proposalReview: null,
+        proposalModalOpen: false,
+        selectedIntegrationId: parsed.integrations[0]?.integration_id || "",
+      selectedComponentName: "",
+      editMode: false,
+      pendingConnectionFrom: "",
+      pendingConnectionDirection: "output",
+      editorMode: "",
+      detailModalOpen: false,
+    };
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function persistState() {
+  try {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        components: state.components,
+        integrations: state.integrations,
+        coverage: state.coverage,
+      })
+    );
+  } catch (error) {
+    // Ignore storage failures and continue with in-memory state.
+  }
+}
+
+function renderDetailModalState() {
+  const shouldOpen = state.detailModalOpen && Boolean(state.selectedComponentName || state.selectedIntegrationId || state.editorMode);
+  elements.detailModal.classList.toggle("is-open", shouldOpen);
+  elements.detailModal.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
+}
+
+function closeDetailModal() {
+  if (state.pendingConnectionFrom) {
+    state.pendingConnectionFrom = "";
+    state.pendingConnectionDirection = "output";
+  }
+  state.detailModalOpen = false;
+  render();
+}
+
+function handleWindowKeydown(event) {
+  if (event.key === "Escape" && state.proposalModalOpen) {
+    closeProposalModal();
+    return;
+  }
+  if (event.key === "Escape" && state.detailModalOpen) {
+    closeDetailModal();
+  }
+}
+
+function getNodeMetrics(name) {
+  const width = Math.max(144, Math.min(220, 34 + String(name || "").length * 8));
+  return {
+    width,
+    halfWidth: width / 2,
+  };
+}
+
+function getDiagramDefault(integration) {
+  const explicit = String(integration.diagram_default || "").trim().toLowerCase();
+  if (explicit === "core" || explicit === "secondary") {
+    return explicit;
+  }
+  return inferDiagramDefault(integration);
+}
+
+function inferDiagramDefault(integration) {
+  const values = [
+    integration.from_component,
+    integration.to_component,
+    integration.integration_type,
+    integration.business_scenario,
+    integration.purpose,
+    integration.protocol_or_method,
+    integration.observability_point,
+    integration.notes,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const touchesSplunk = values.includes("splunk");
+  const looksLikeLogFlow = ["syslog", "log", "ログ", "monitor", "監視", "alert", "アラート", "event", "イベント"].some((token) =>
+    values.includes(token)
+  );
+  return touchesSplunk && looksLikeLogFlow ? "secondary" : "core";
+}
+
 function renderSelectOptions(values, selectedValue) {
   return values
     .map((value) => `<option value="${escapeHtml(value)}"${value === selectedValue ? " selected" : ""}>${escapeHtml(value)}</option>`)
+    .join("");
+}
+
+function renderFlowDirectionOptions(selectedValue) {
+  return [
+    ["output", "出力"],
+    ["input", "入力"],
+    ["bidirectional", "相互連携"],
+  ]
+    .map(
+      ([value, label]) =>
+        `<option value="${escapeHtml(value)}"${value === selectedValue ? " selected" : ""}>${escapeHtml(label)}</option>`
+    )
     .join("");
 }
 
@@ -1485,6 +2402,32 @@ function formatProtocol(row) {
   return values.join(" / ");
 }
 
+function normalizeFlowDirection(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (VALID_FLOW_DIRECTIONS.includes(normalized)) {
+    return normalized;
+  }
+  return "output";
+}
+
+function getFlowDirectionLabel(row) {
+  const direction = normalizeFlowDirection(row.flow_direction);
+  if (direction === "input") return "入力";
+  if (direction === "bidirectional") return "相互連携";
+  return "出力";
+}
+
+function getFlowArrowSymbol(row) {
+  const direction = normalizeFlowDirection(row.flow_direction);
+  if (direction === "input") return "<-";
+  if (direction === "bidirectional") return "<->";
+  return "->";
+}
+
+function formatIntegrationLink(row) {
+  return `${row.from_component} ${getFlowArrowSymbol(row)} ${row.to_component}`;
+}
+
 function summarizeDepth(rows) {
   return Array.from(new Set(rows.map((row) => row.test_depth).filter(Boolean))).join(", ");
 }
@@ -1501,10 +2444,16 @@ function summarizeDefects(rows) {
   return Array.from(new Set(rows.map((row) => row.defect_id).filter(Boolean))).join(", ");
 }
 
-function criticalityColor(value) {
-  if (value === "High") return "#b42318";
-  if (value === "Medium") return "#b7791f";
+function flowDirectionColor(direction) {
+  if (direction === "input") return "#d97706";
+  if (direction === "bidirectional") return "#7c3aed";
   return "#0f766e";
+}
+
+function secondaryFlowDirectionColor(direction) {
+  if (direction === "input") return "#b98b54";
+  if (direction === "bidirectional") return "#8d73bf";
+  return "#5a8d86";
 }
 
 function criticalityToken(value) {
