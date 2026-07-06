@@ -116,6 +116,28 @@ h2 {
   border-top: 1px solid var(--rule);
 }
 
+.map-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+
+.map-tabs button {
+  min-height: 32px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.map-tabs button.is-active {
+  border-color: #184d72;
+  background: linear-gradient(180deg, #2b6f9d, #1f5f8b);
+  color: #fff;
+}
+
 label {
   display: grid;
   gap: 5px;
@@ -205,6 +227,11 @@ textarea:focus-visible {
 
 .toggle input {
   min-height: auto;
+}
+
+.legend.is-server-mode .core,
+.legend.is-server-mode .secondary {
+  opacity: 0.35;
 }
 
 .connection-toolbar {
@@ -397,9 +424,10 @@ textarea:focus-visible {
   background: var(--red);
 }
 
-#mapSvg {
+.map-canvas-scroll {
   width: 100%;
-  min-height: 760px;
+  max-height: min(76vh, 820px);
+  overflow: auto;
   border: 1px solid var(--rule);
   border-radius: var(--radius-md);
   background:
@@ -407,6 +435,13 @@ textarea:focus-visible {
     linear-gradient(90deg, rgba(19, 32, 44, 0.05) 1px, transparent 1px),
     #fbfcfd;
   background-size: 32px 32px;
+}
+
+#mapSvg {
+  display: block;
+  width: 1920px;
+  height: 1120px;
+  max-width: none;
 }
 
 .detail-modal {
@@ -938,8 +973,13 @@ td.compact {
     font-size: 24px;
   }
 
+  .map-canvas-scroll {
+    max-height: 68vh;
+  }
+
   #mapSvg {
-    min-height: 520px;
+    width: 1600px;
+    height: 940px;
   }
 
   .detail-modal {

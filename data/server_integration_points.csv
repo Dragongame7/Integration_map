@@ -1,0 +1,29 @@
+server_integration_id,from_server,to_server,flow_direction,integration_type,purpose,protocol,port,criticality,diagram_default,notes
+SINT-001,Outlook Service,SharePoint Service,output,通知,メール通知からSharePoint文書へ誘導する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-002,SharePoint Service,Active Directory DC,input,認可,SharePoint権限判定でADグループを参照する,LDAP/Graph,389/443,High,core,製品間連携を代表サーバで表現
+SINT-003,FortiGate Appliance,SharePoint Service,output,通信制御,SharePoint通信を許可または遮断する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-004,VMware vCenter,Active Directory DC,input,認証,vSphere管理操作でAD認証を利用する,Kerberos/LDAP,88/389/445,High,core,製品間連携を代表サーバで表現
+SINT-005,Cisco Switch,Splunk IndexServer,output,ログ連携,ネットワーク機器ログをSplunkへ集約する,Syslog,514,Medium,secondary,各サーバに入るエージェント系は対象外
+SINT-006,FortiGate Appliance,Splunk IndexServer,output,監視,FWログをSplunkへ集約する,Syslog,514,High,secondary,各サーバに入るエージェント系は対象外
+SINT-007,Outlook Service,Active Directory DC,input,認証,Outlook利用者認証でADを参照する,Kerberos/LDAP,88/389,Medium,core,製品間連携を代表サーバで表現
+SINT-008,Virtru Service,Outlook Service,output,通知,保護付きメール送受信を連携する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-009,NextLabs Policy Server,SharePoint Service,output,ファイル連携,共有ファイルの保護制御を連携する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-010,OpenFreeRadius Server,Active Directory DC,input,認証,RADIUS認証でAD利用者を照合する,LDAP/RADIUS,1812/389,High,core,製品間連携を代表サーバで表現
+SINT-011,SKYSEA Management Server,Active Directory DC,input,認証,端末台帳と利用者情報を突合する,LDAP,389,Medium,core,製品間連携を代表サーバで表現
+SINT-012,SKYSEA Management Server,Splunk IndexServer,output,ログ連携,端末操作ログをSplunkへ集約する,Syslog/API,443/514,Medium,secondary,各サーバに入るエージェント系は対象外
+SINT-013,Trellix HX Server,Splunk IndexServer,output,監視,EDRイベントをSplunkへ集約する,Syslog/API,443/514,High,secondary,各サーバに入るエージェント系は対象外
+SINT-014,Trellix ePO Server,Trellix HX Server,output,設定反映,HXへセキュリティポリシーを配布する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-015,Tenable Scanner,VMware vCenter,output,監視,vSphere上の対象資産を診断する,HTTPS,443,Medium,core,製品間連携を代表サーバで表現
+SINT-016,IDEA CA Server,Active Directory DC,input,認証,証明書発行対象の利用者情報を参照する,LDAP/HTTPS,389/443,High,core,製品間連携を代表サーバで表現
+SINT-017,Tripwire Server,Splunk IndexServer,output,監視,改ざん検知イベントをSplunkへ集約する,Syslog/API,443/514,High,secondary,各サーバに入るエージェント系は対象外
+SINT-018,Horizon Connection Server,Active Directory DC,input,認証,VDI利用者のドメイン認証を行う,Kerberos/LDAP,88/389,High,core,製品間連携を代表サーバで表現
+SINT-019,Horizon Connection Server,VMware vCenter,input,運用,VDI基盤のホスト状態を管理する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-020,Veeam Backup Server,VMware vCenter,input,運用,vSphere上のVMをバックアップ対象として取得する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-021,FortiManager Server,FortiGate Appliance,output,設定反映,FortiGateへFWポリシーを配布する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-022,iDoperation Server,Active Directory DC,input,認可,特権IDの利用者情報を参照する,LDAP/HTTPS,389/443,High,core,製品間連携を代表サーバで表現
+SINT-023,Themis MFA Server,Horizon Connection Server,output,認証,VDI利用時にMFA認証を要求する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-024,Splunk SearchHead,Splunk IndexServer,output,検索,SearchHeadからIndexServerへ検索要求を行う,HTTPS,8089,High,core,Splunk内部連携
+SINT-025,Splunk DeploymentServer,Splunk SearchHead,output,設定配布,DeploymentServerからSearchHeadへ設定を配布する,HTTPS,8089,Medium,core,Splunk内部連携
+SINT-026,Splunk DeploymentServer,Splunk IndexServer,output,設定配布,DeploymentServerからIndexServerへ設定を配布する,HTTPS,8089,Medium,core,Splunk内部連携
+SINT-027,Splunk IndexServer,Splunk SOAR Server,output,運用,検知イベントをSOARへ渡す,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-028,Splunk IndexServer,Splunk UEBA Server,output,監視,UEBA向けイベントを連携する,HTTPS,443,High,core,製品間連携を代表サーバで表現

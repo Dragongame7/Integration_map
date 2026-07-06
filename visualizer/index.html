@@ -102,9 +102,13 @@
           <div class="panel-title">
             <div>
               <p class="kicker">Topology</p>
-              <h2>製品間連携図</h2>
+              <h2 id="mapTitle">製品間連携図</h2>
             </div>
-              <div class="legend">
+              <div class="map-tabs" role="tablist" aria-label="連携図の表示切替">
+                <button id="productMapTab" type="button" role="tab" aria-selected="true">製品間</button>
+                <button id="serverMapTab" type="button" role="tab" aria-selected="false">サーバ間</button>
+              </div>
+              <div id="mapLegend" class="legend">
                 <span><i class="line core"></i>主連携</span>
                 <span><i class="line secondary"></i>補助連携</span>
                 <span><i class="legend-arrow right"></i>出力</span>
@@ -113,7 +117,9 @@
                 <span><i class="badge danger"></i>未完了</span>
               </div>
           </div>
-          <svg id="mapSvg" viewBox="0 0 1280 760" role="img" aria-label="システム基盤の製品間連携図"></svg>
+          <div id="mapCanvasScroll" class="map-canvas-scroll">
+            <svg id="mapSvg" viewBox="0 0 1920 1120" role="img" aria-label="システム基盤の製品間連携図"></svg>
+          </div>
         </section>
       </section>
 

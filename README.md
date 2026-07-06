@@ -20,6 +20,8 @@
 | `data/components.csv` | 構成要素の台帳 |
 | `data/integration_points.csv` | 製品間連携の台帳。連携種別、業務シナリオ、方式、ポート、期待証跡、失敗時影響を管理 |
 | `data/coverage_matrix.csv` | 結合点ごとの試験観点ステータス。必要理由、証跡要否、証跡状態を管理 |
+| `data/servers.csv` | 製品に属するサーバ実体の台帳。例: Splunk SearchHead / IndexServer |
+| `data/server_integration_points.csv` | サーバ間連携の台帳。エージェント系は当面対象外 |
 | `visualizer/index.html` | CSV を読み込んで連携図を表示するビューア |
 | `docs/product_addition_policy.md` | 製品追加と連携追加の判断基準 |
 | `docs/llm_import_contract.md` | ローカルLLMへ渡す入出力契約 |
@@ -66,6 +68,8 @@ npm start
 
 連携図は `integration_points.csv` を正として描画します。  
 網羅性は `coverage_matrix.csv` を正として集計します。
+
+サーバ間連携図は将来のタブ切り替え表示を想定し、`servers.csv` と `server_integration_points.csv` を別粒度のデータとして管理します。製品単位の連携とサーバ単位の通信は混在させず、`servers.csv` の `product_name` で製品へ紐づけます。
 
 連携種別は `integration_type` で分類します。例は `認証`、`認可`、`通信制御`、`ログ連携`、`監視`、`ファイル連携`、`通知` です。
 

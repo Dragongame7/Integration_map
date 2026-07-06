@@ -114,16 +114,76 @@ INT-026,DATA,データ連携,Yes,検知イベントがSOARへ渡る必要があ�
 INT-026,OPS,運用,Yes,プレイブック自動実行を確認する必要がある,PLANNED,TC-026-002,Recovery,Yes,,未取得,プレイブック実行履歴,2026-07-05,,SecOps,プレイブック自動実行
 INT-027,DATA,データ連携,Yes,UEBA向けイベントが継続的に取り込まれる必要がある,PLANNED,TC-027-001,Normal,Yes,,未取得,UEBAイベント取り込みログ,2026-07-05,,SecOps,UEBA向けイベント取り込み
 INT-027,MON,監視,Yes,ユーザー行動の異常検知結果を確認する必要がある,PLANNED,TC-027-002,Abnormal,Yes,,未取得,UEBA異常検知画面,2026-07-05,,SecOps,異常検知結果の確認`,
+  servers: `server_id,server_name,product_name,server_role,domain,environment,owner,description,pos_x,pos_y
+SRV-001,Outlook Service,Outlook,SaaS Service,User Access,IT,M365Team,Outlookメールサービス,,
+SRV-002,SharePoint Service,SharePoint,SaaS Service,User Access,IT,M365Team,SharePoint文書管理サービス,,
+SRV-003,Active Directory DC,Active Directory,Domain Controller,Identity,IT,IdentityTeam,認証とディレクトリサービス,,
+SRV-004,FortiGate Appliance,FortiGate,Firewall,Network Security,IT,NetworkTeam,境界FWアプライアンス,,
+SRV-005,Cisco Switch,Cisco Switch,Network Device,Network Security,IT,NetworkTeam,L2/L3スイッチ,,
+SRV-006,VMware vCenter,VMware vSphere,Management Server,Platform,IT,ServerTeam,vSphere管理サーバ,,
+SRV-007,Splunk SearchHead,Splunk,SearchHead,Security Ops,IT,SecOps,検索UIとサーチ実行,,
+SRV-008,Splunk IndexServer,Splunk,IndexServer,Security Ops,IT,SecOps,イベント保管と検索処理,,
+SRV-009,Splunk DeploymentServer,Splunk,DeploymentServer,Security Ops,IT,SecOps,Splunkサーバ設定配布,,
+SRV-010,Trellix HX Server,Trellix HX,Management Server,Security Ops,IT,SecOps,EDR管理サーバ,,
+SRV-011,SKYSEA Management Server,SKYSEA,Management Server,Operations,IT,OpsTeam,端末管理サーバ,,
+SRV-012,OpenFreeRadius Server,OpenFreeRadius,RADIUS Server,Identity,IT,IdentityTeam,RADIUS認証サーバ,,
+SRV-013,Trellix ePO Server,Trellix ePO,Management Server,Operations,IT,SecOps,セキュリティ統合管理サーバ,,
+SRV-014,Tenable Scanner,Tenable,Scanner,Security Ops,IT,SecOps,脆弱性診断スキャナ,,
+SRV-015,Virtru Service,Virtru,SaaS Service,User Access,IT,M365Team,メール保護サービス,,
+SRV-016,NextLabs Policy Server,NextLabs,Policy Server,User Access,IT,M365Team,ファイル共有ポリシー制御サーバ,,
+SRV-017,IDEA CA Server,IDEA CA,CA Server,Identity,IT,IdentityTeam,認証局サーバ,,
+SRV-018,Tripwire Server,Tripwire,Monitoring Server,Security Ops,IT,SecOps,改ざん検知管理サーバ,,
+SRV-019,Horizon Connection Server,Horizon VDI,Connection Server,User Access,IT,ServerTeam,VDI接続管理サーバ,,
+SRV-020,Veeam Backup Server,Veeam Backup,Backup Server,Platform,IT,ServerTeam,バックアップ管理サーバ,,
+SRV-021,FortiManager Server,FortiManager,Management Server,Network Security,IT,NetworkTeam,FortiGate管理サーバ,,
+SRV-022,iDoperation Server,iDoperation,Privileged Access Server,Identity,IT,IdentityTeam,特権ID管理サーバ,,
+SRV-023,Themis MFA Server,Themis,MFA Server,Identity,IT,IdentityTeam,多要素認証サーバ,,
+SRV-024,Splunk SOAR Server,Splunk SOAR,SOAR Server,Security Ops,IT,SecOps,SOARプレイブック実行サーバ,,
+SRV-025,Splunk UEBA Server,Splunk UEBA,UEBA Server,Security Ops,IT,SecOps,UEBA分析サーバ,,`,
+  serverIntegrations: `server_integration_id,from_server,to_server,flow_direction,integration_type,purpose,protocol,port,criticality,diagram_default,notes
+SINT-001,Outlook Service,SharePoint Service,output,通知,メール通知からSharePoint文書へ誘導する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-002,SharePoint Service,Active Directory DC,input,認可,SharePoint権限判定でADグループを参照する,LDAP/Graph,389/443,High,core,製品間連携を代表サーバで表現
+SINT-003,FortiGate Appliance,SharePoint Service,output,通信制御,SharePoint通信を許可または遮断する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-004,VMware vCenter,Active Directory DC,input,認証,vSphere管理操作でAD認証を利用する,Kerberos/LDAP,88/389/445,High,core,製品間連携を代表サーバで表現
+SINT-005,Cisco Switch,Splunk IndexServer,output,ログ連携,ネットワーク機器ログをSplunkへ集約する,Syslog,514,Medium,secondary,各サーバに入るエージェント系は対象外
+SINT-006,FortiGate Appliance,Splunk IndexServer,output,監視,FWログをSplunkへ集約する,Syslog,514,High,secondary,各サーバに入るエージェント系は対象外
+SINT-007,Outlook Service,Active Directory DC,input,認証,Outlook利用者認証でADを参照する,Kerberos/LDAP,88/389,Medium,core,製品間連携を代表サーバで表現
+SINT-008,Virtru Service,Outlook Service,output,通知,保護付きメール送受信を連携する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-009,NextLabs Policy Server,SharePoint Service,output,ファイル連携,共有ファイルの保護制御を連携する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-010,OpenFreeRadius Server,Active Directory DC,input,認証,RADIUS認証でAD利用者を照合する,LDAP/RADIUS,1812/389,High,core,製品間連携を代表サーバで表現
+SINT-011,SKYSEA Management Server,Active Directory DC,input,認証,端末台帳と利用者情報を突合する,LDAP,389,Medium,core,製品間連携を代表サーバで表現
+SINT-012,SKYSEA Management Server,Splunk IndexServer,output,ログ連携,端末操作ログをSplunkへ集約する,Syslog/API,443/514,Medium,secondary,各サーバに入るエージェント系は対象外
+SINT-013,Trellix HX Server,Splunk IndexServer,output,監視,EDRイベントをSplunkへ集約する,Syslog/API,443/514,High,secondary,各サーバに入るエージェント系は対象外
+SINT-014,Trellix ePO Server,Trellix HX Server,output,設定反映,HXへセキュリティポリシーを配布する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-015,Tenable Scanner,VMware vCenter,output,監視,vSphere上の対象資産を診断する,HTTPS,443,Medium,core,製品間連携を代表サーバで表現
+SINT-016,IDEA CA Server,Active Directory DC,input,認証,証明書発行対象の利用者情報を参照する,LDAP/HTTPS,389/443,High,core,製品間連携を代表サーバで表現
+SINT-017,Tripwire Server,Splunk IndexServer,output,監視,改ざん検知イベントをSplunkへ集約する,Syslog/API,443/514,High,secondary,各サーバに入るエージェント系は対象外
+SINT-018,Horizon Connection Server,Active Directory DC,input,認証,VDI利用者のドメイン認証を行う,Kerberos/LDAP,88/389,High,core,製品間連携を代表サーバで表現
+SINT-019,Horizon Connection Server,VMware vCenter,input,運用,VDI基盤のホスト状態を管理する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-020,Veeam Backup Server,VMware vCenter,input,運用,vSphere上のVMをバックアップ対象として取得する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-021,FortiManager Server,FortiGate Appliance,output,設定反映,FortiGateへFWポリシーを配布する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-022,iDoperation Server,Active Directory DC,input,認可,特権IDの利用者情報を参照する,LDAP/HTTPS,389/443,High,core,製品間連携を代表サーバで表現
+SINT-023,Themis MFA Server,Horizon Connection Server,output,認証,VDI利用時にMFA認証を要求する,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-024,Splunk SearchHead,Splunk IndexServer,output,検索,SearchHeadからIndexServerへ検索要求を行う,HTTPS,8089,High,core,Splunk内部連携
+SINT-025,Splunk DeploymentServer,Splunk SearchHead,output,設定配布,DeploymentServerからSearchHeadへ設定を配布する,HTTPS,8089,Medium,core,Splunk内部連携
+SINT-026,Splunk DeploymentServer,Splunk IndexServer,output,設定配布,DeploymentServerからIndexServerへ設定を配布する,HTTPS,8089,Medium,core,Splunk内部連携
+SINT-027,Splunk IndexServer,Splunk SOAR Server,output,運用,検知イベントをSOARへ渡す,HTTPS,443,High,core,製品間連携を代表サーバで表現
+SINT-028,Splunk IndexServer,Splunk UEBA Server,output,監視,UEBA向けイベントを連携する,HTTPS,443,High,core,製品間連携を代表サーバで表現`,
 };
 
 let state = {
   components: [],
   integrations: [],
   coverage: [],
+  servers: [],
+  serverIntegrations: [],
+  viewMode: "product",
   proposalReview: null,
   proposalModalOpen: false,
   selectedIntegrationId: "",
   selectedComponentName: "",
+  selectedServerName: "",
+  selectedServerIntegrationId: "",
   editMode: false,
   pendingConnectionFrom: "",
   pendingConnectionDirection: "output",
@@ -163,6 +223,10 @@ const elements = {
   summaryStrip: document.getElementById("summaryStrip"),
   mapSvg: document.getElementById("mapSvg"),
   mapPanel: document.querySelector(".map-panel"),
+  mapTitle: document.getElementById("mapTitle"),
+  mapLegend: document.getElementById("mapLegend"),
+  productMapTab: document.getElementById("productMapTab"),
+  serverMapTab: document.getElementById("serverMapTab"),
   selectedDetail: document.getElementById("selectedDetail"),
   editorPanel: document.getElementById("editorPanel"),
   detailModal: document.getElementById("detailModal"),
@@ -204,6 +268,8 @@ elements.showSecondaryFilter.addEventListener("change", render);
 elements.pendingConnectionDirectionSelect.addEventListener("change", updatePendingConnectionControls);
 elements.pendingConnectionDiagramSelect.addEventListener("change", updatePendingConnectionControls);
 elements.cancelPendingConnectionToolbarButton.addEventListener("click", cancelPendingConnection);
+elements.productMapTab.addEventListener("click", () => setViewMode("product"));
+elements.serverMapTab.addEventListener("click", () => setViewMode("server"));
 elements.closeDetailModalButton.addEventListener("click", closeDetailModal);
 elements.detailModalBackdrop.addEventListener("click", closeDetailModal);
 elements.closeProposalModalButton.addEventListener("click", closeProposalModal);
@@ -243,12 +309,15 @@ async function loadSample(preferSaved = false) {
       components: parseCsv(sample.components),
       integrations: parseCsv(sample.integrations),
       coverage: parseCsv(sample.coverage),
+      servers: parseCsv(sample.servers),
+      serverIntegrations: parseCsv(sample.serverIntegrations),
     }),
     proposalReview: null,
     proposalModalOpen: false,
     selectedIntegrationId: "INT-006",
     selectedComponentName: "",
     editMode: false,
+    viewMode: "product",
     pendingConnectionFrom: "",
     pendingConnectionDirection: "output",
     pendingConnectionDiagramDefault: "core",
@@ -263,10 +332,12 @@ async function loadSample(preferSaved = false) {
 
 async function loadBundledCsv() {
   try {
-    const [componentsText, integrationsText, coverageText] = await Promise.all([
+    const [componentsText, integrationsText, coverageText, serversText, serverIntegrationsText] = await Promise.all([
       fetch("../data/components.csv", { cache: "no-store" }).then(ensureOk).then((response) => response.text()),
       fetch("../data/integration_points.csv", { cache: "no-store" }).then(ensureOk).then((response) => response.text()),
       fetch("../data/coverage_matrix.csv", { cache: "no-store" }).then(ensureOk).then((response) => response.text()),
+      fetchOptionalCsv("../data/servers.csv"),
+      fetchOptionalCsv("../data/server_integration_points.csv"),
     ]);
 
       state = {
@@ -274,12 +345,15 @@ async function loadBundledCsv() {
           components: parseCsv(componentsText),
           integrations: parseCsv(integrationsText),
           coverage: parseCsv(coverageText),
+          servers: parseCsv(serversText || sample.servers),
+          serverIntegrations: parseCsv(serverIntegrationsText || sample.serverIntegrations),
         }),
         proposalReview: null,
         proposalModalOpen: false,
         selectedIntegrationId: "INT-006",
       selectedComponentName: "",
       editMode: false,
+      viewMode: "product",
       pendingConnectionFrom: "",
       pendingConnectionDirection: "output",
       pendingConnectionDiagramDefault: "core",
@@ -303,6 +377,16 @@ function ensureOk(response) {
   return response;
 }
 
+async function fetchOptionalCsv(path) {
+  try {
+    const response = await fetch(path, { cache: "no-store" });
+    if (!response.ok) return "";
+    return response.text();
+  } catch (error) {
+    return "";
+  }
+}
+
 async function loadUploadedFiles() {
   const { componentsFile, integrationsFile, coverageFile } = elements;
   if (!componentsFile.files[0] || !integrationsFile.files[0] || !coverageFile.files[0]) {
@@ -320,12 +404,15 @@ async function loadUploadedFiles() {
       components: parseCsv(componentsText),
       integrations: parseCsv(integrationsText),
       coverage: parseCsv(coverageText),
+      servers: state.servers,
+      serverIntegrations: state.serverIntegrations,
     }),
     proposalReview: null,
     proposalModalOpen: false,
     selectedIntegrationId: "",
     selectedComponentName: "",
     editMode: false,
+    viewMode: "product",
     pendingConnectionFrom: "",
     pendingConnectionDirection: "output",
     pendingConnectionDiagramDefault: "core",
@@ -353,7 +440,7 @@ function render() {
   }
 
   renderSummary(displayIntegrations, enriched);
-  renderMap(enriched, layoutBaseline);
+  renderMapMode(enriched, layoutBaseline);
   renderDetail(displayIntegrations);
   renderEditorPanel(displayIntegrations);
   renderRiskTable(displayIntegrations);
@@ -467,10 +554,10 @@ function renderSummary(integrations, allIntegrations) {
 }
 
 function renderMap(integrations, baselineIntegrations = integrations) {
-  const width = 1280;
-  const height = 760;
+  const width = 1920;
+  const height = 1120;
   const domains = DOMAIN_ORDER;
-  const domainX = new Map(domains.map((domain, index) => [domain, 110 + index * 205]));
+  const domainX = new Map(domains.map((domain, index) => [domain, 150 + index * 300]));
   const componentsByName = new Map(state.components.map((component) => [component.component_name, component]));
   const visibleNames = state.editMode
     ? state.components.map((component) => component.component_name)
@@ -487,7 +574,7 @@ function renderMap(integrations, baselineIntegrations = integrations) {
       const customX = Number(component.pos_x);
       const customY = Number(component.pos_y);
       positions.set(name, {
-        x: Number.isFinite(customX) && customX > 0 ? customX : domainX.get(domain) || 110,
+        x: Number.isFinite(customX) && customX > 0 ? customX : domainX.get(domain) || 150,
         y: Number.isFinite(customY) && customY > 0 ? customY : startY + index * 112,
         domain,
       });
@@ -515,168 +602,14 @@ function renderMap(integrations, baselineIntegrations = integrations) {
     .map((domain) => `<text x="${domainX.get(domain)}" y="42" text-anchor="middle" class="domain-label">${domain}</text>`)
     .join("");
 
-  const routePlans = integrations.map((row, index) => {
-    const from = positions.get(row.from_component);
-    const to = positions.get(row.to_component);
-    const fromMetrics = nodeMetrics.get(row.from_component);
-    const toMetrics = nodeMetrics.get(row.to_component);
-    if (!from || !to || !fromMetrics || !toMetrics) {
-      return null;
-    }
-
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    const horizontalGap = Math.max(0, Math.abs(dx) - fromMetrics.halfWidth - toMetrics.halfWidth);
-    const verticalGap = Math.max(0, Math.abs(dy) - fromMetrics.halfHeight - toMetrics.halfHeight);
-    const orientation = horizontalGap === verticalGap
-      ? Math.abs(dx) >= Math.abs(dy) ? "horizontal" : "vertical"
-      : horizontalGap > verticalGap ? "horizontal" : "vertical";
-    const horizontalDirection = dx >= 0 ? 1 : -1;
-    const verticalDirection = dy >= 0 ? 1 : -1;
-    return {
-      row,
-      index,
-      from,
-      to,
-      fromMetrics,
-      toMetrics,
-      orientation,
-      horizontalDirection,
-      verticalDirection,
-      fromSide: orientation === "horizontal" ? (horizontalDirection > 0 ? "right" : "left") : (verticalDirection > 0 ? "bottom" : "top"),
-      toSide: orientation === "horizontal" ? (horizontalDirection > 0 ? "left" : "right") : (verticalDirection > 0 ? "top" : "bottom"),
-    };
-  });
-
-  const endpointGroups = new Map();
-  routePlans.forEach((plan) => {
-    if (!plan) return;
-    const fromKey = `${plan.row.from_component}:${plan.fromSide}`;
-    const toKey = `${plan.row.to_component}:${plan.toSide}`;
-    if (!endpointGroups.has(fromKey)) endpointGroups.set(fromKey, []);
-    if (!endpointGroups.has(toKey)) endpointGroups.set(toKey, []);
-    endpointGroups.get(fromKey).push({ plan, anchor: "from", peerY: plan.to.y, peerX: plan.to.x });
-    endpointGroups.get(toKey).push({ plan, anchor: "to", peerY: plan.from.y, peerX: plan.from.x });
-  });
-
-  const endpointOffsets = new Map();
-  endpointGroups.forEach((items, groupKey) => {
-    items
-      .sort((a, b) => {
-        const axis = groupKey.endsWith(":left") || groupKey.endsWith(":right") ? "peerY" : "peerX";
-        return a[axis] - b[axis] || a.peerX - b.peerX || a.peerY - b.peerY || a.plan.row.integration_id.localeCompare(b.plan.row.integration_id, "ja");
-      })
-      .forEach((item, itemIndex) => {
-        const offsetIndex = itemIndex - (items.length - 1) / 2;
-        endpointOffsets.set(`${item.plan.row.integration_id}:${item.anchor}`, offsetIndex * 12);
-      });
-  });
-
-  const occupiedHorizontalLanes = [];
-  const occupiedVerticalLanes = [];
-  routePlans
-    .filter(Boolean)
-    .sort((a, b) => Math.abs(b.to.y - b.from.y) - Math.abs(a.to.y - a.from.y) || a.index - b.index)
-    .forEach((plan) => {
-      const anchorOffset = endpointOffsets.get(`${plan.row.integration_id}:from`) || 0;
-      const peerOffset = endpointOffsets.get(`${plan.row.integration_id}:to`) || 0;
-      const candidateOffsets = [0, 24, -24, 48, -48, 72, -72, 96, -96];
-      if (plan.orientation === "horizontal") {
-        const startX = plan.from.x + plan.fromMetrics.halfWidth * plan.horizontalDirection;
-        const endX = plan.to.x - plan.toMetrics.halfWidth * plan.horizontalDirection;
-        const startY = plan.from.y + anchorOffset;
-        const endY = plan.to.y + peerOffset;
-        const baseLaneX = (startX + endX) / 2 + plan.horizontalDirection * 28;
-        const topY = Math.min(startY, endY) - 18;
-        const bottomY = Math.max(startY, endY) + 18;
-        const sourceGuard = getNodeGuard(plan.from, plan.fromMetrics, 22);
-        const targetGuard = getNodeGuard(plan.to, plan.toMetrics, 22);
-        const startLaneIsOutsideSource =
-          plan.fromSide === "left"
-            ? (candidateLaneX) => candidateLaneX < sourceGuard.left
-            : (candidateLaneX) => candidateLaneX > sourceGuard.right;
-        const terminalLaneIsOutsideTarget =
-          plan.toSide === "left"
-            ? (candidateLaneX) => candidateLaneX < targetGuard.left
-            : (candidateLaneX) => candidateLaneX > targetGuard.right;
-        let laneX = baseLaneX;
-        let foundLane = false;
-        for (const candidateOffset of candidateOffsets) {
-          const candidateLaneX = baseLaneX + candidateOffset;
-          const collision = occupiedVerticalLanes.some(
-            (lane) => Math.abs(lane.lane - candidateLaneX) < 18 && !(bottomY < lane.rangeStart || topY > lane.rangeEnd)
-          );
-          if (!collision && startLaneIsOutsideSource(candidateLaneX) && terminalLaneIsOutsideTarget(candidateLaneX)) {
-            laneX = candidateLaneX;
-            foundLane = true;
-            break;
-          }
-        }
-        if (!foundLane) {
-          const guardedLeft = Math.max(sourceGuard.right + 12, targetGuard.left - 24);
-          const guardedRight = Math.min(sourceGuard.left - 12, targetGuard.right + 24);
-          laneX = plan.fromSide === "right" && plan.toSide === "left" ? guardedLeft : guardedRight;
-        }
-        occupiedVerticalLanes.push({ lane: laneX, rangeStart: topY, rangeEnd: bottomY });
-        plan.labelX = laneX;
-        plan.labelY = topY + (bottomY - topY) / 2 - 10;
-        plan.pathData = [
-          `M ${startX} ${startY}`,
-          `L ${startX + plan.horizontalDirection * 18} ${startY}`,
-          `L ${laneX} ${startY}`,
-          `L ${laneX} ${endY}`,
-          `L ${endX - plan.horizontalDirection * 18} ${endY}`,
-          `L ${endX} ${endY}`,
-        ].join(" ");
-      } else {
-        const startX = plan.from.x + anchorOffset;
-        const endX = plan.to.x + peerOffset;
-        const startY = plan.from.y + plan.fromMetrics.halfHeight * plan.verticalDirection;
-        const endY = plan.to.y - plan.toMetrics.halfHeight * plan.verticalDirection;
-        const baseLaneY = (startY + endY) / 2 + plan.verticalDirection * 28;
-        const leftX = Math.min(startX, endX) - 18;
-        const rightX = Math.max(startX, endX) + 18;
-        const sourceGuard = getNodeGuard(plan.from, plan.fromMetrics, 22);
-        const targetGuard = getNodeGuard(plan.to, plan.toMetrics, 22);
-        const startLaneIsOutsideSource =
-          plan.fromSide === "top"
-            ? (candidateLaneY) => candidateLaneY < sourceGuard.top
-            : (candidateLaneY) => candidateLaneY > sourceGuard.bottom;
-        const terminalLaneIsOutsideTarget =
-          plan.toSide === "top"
-            ? (candidateLaneY) => candidateLaneY < targetGuard.top
-            : (candidateLaneY) => candidateLaneY > targetGuard.bottom;
-        let laneY = baseLaneY;
-        let foundLane = false;
-        for (const candidateOffset of candidateOffsets) {
-          const candidateLaneY = baseLaneY + candidateOffset;
-          const collision = occupiedHorizontalLanes.some(
-            (lane) => Math.abs(lane.lane - candidateLaneY) < 18 && !(rightX < lane.rangeStart || leftX > lane.rangeEnd)
-          );
-          if (!collision && startLaneIsOutsideSource(candidateLaneY) && terminalLaneIsOutsideTarget(candidateLaneY)) {
-            laneY = candidateLaneY;
-            foundLane = true;
-            break;
-          }
-        }
-        if (!foundLane) {
-          const guardedTop = Math.max(sourceGuard.bottom + 12, targetGuard.top - 24);
-          const guardedBottom = Math.min(sourceGuard.top - 12, targetGuard.bottom + 24);
-          laneY = plan.fromSide === "bottom" && plan.toSide === "top" ? guardedTop : guardedBottom;
-        }
-        occupiedHorizontalLanes.push({ lane: laneY, rangeStart: leftX, rangeEnd: rightX });
-        plan.labelX = leftX + (rightX - leftX) / 2;
-        plan.labelY = laneY - 10;
-        plan.pathData = [
-          `M ${startX} ${startY}`,
-          `L ${startX} ${startY + plan.verticalDirection * 18}`,
-          `L ${startX} ${laneY}`,
-          `L ${endX} ${laneY}`,
-          `L ${endX} ${endY - plan.verticalDirection * 18}`,
-          `L ${endX} ${endY}`,
-        ].join(" ");
-      }
-    });
+  const routePlans = buildFixedSourceRoutePlans(
+    integrations,
+    positions,
+    nodeMetrics,
+    (row) => row.integration_id,
+    (row) => row.from_component,
+    (row) => row.to_component
+  );
 
   const edges = integrations
     .map((row) => {
@@ -734,6 +667,7 @@ function renderMap(integrations, baselineIntegrations = integrations) {
     })
     .join("");
 
+    elements.mapSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     elements.mapSvg.innerHTML = `${defs}${domainLabels}${edges}${nodes}`;
     elements.mapSvg.querySelectorAll(".edge").forEach((edge) => {
       const select = (openDetail = false) => {
@@ -805,7 +739,188 @@ function renderMap(integrations, baselineIntegrations = integrations) {
     });
   }
 
+function renderServerMap(serverIntegrations = state.serverIntegrations, servers = state.servers, targetSvg = elements.mapSvg) {
+  const width = 1920;
+  const height = 1120;
+  const domains = Array.from(new Set([...DOMAIN_ORDER, ...servers.map((server) => server.domain).filter(Boolean)]));
+  const domainX = new Map(domains.map((domain, index) => [domain, 150 + index * 300]));
+  const serversByName = new Map(servers.map((server) => [server.server_name, server]));
+  const visibleServerNames = Array.from(new Set(servers.map((server) => server.server_name).filter(Boolean)));
+  const grouped = groupBy(visibleServerNames, (name) => serversByName.get(name)?.domain || "Operations");
+  const positions = new Map();
+  const nodeMetrics = new Map(visibleServerNames.map((name) => [name, getNodeMetrics(name)]));
+
+  domains.forEach((domain) => {
+    const names = grouped.get(domain) || [];
+    const startY = Math.max(140, 360 - names.length * 54);
+    names.forEach((name, index) => {
+      const server = serversByName.get(name) || {};
+      const customX = Number(server.pos_x);
+      const customY = Number(server.pos_y);
+      positions.set(name, {
+        x: Number.isFinite(customX) && customX > 0 ? customX : domainX.get(domain) || 150,
+        y: Number.isFinite(customY) && customY > 0 ? customY : startY + index * 122,
+        domain,
+      });
+    });
+  });
+
+  const defs = `
+    <defs>
+      ${["output", "input", "bidirectional"].map(
+        (direction) => `
+          <marker id="server-arrow-${direction}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L8,4 L0,8 z" fill="${flowDirectionColor(direction)}"></path>
+          </marker>
+        `
+      ).join("")}
+    </defs>
+  `;
+  const productLabels = domains
+    .map((domain) => `<text x="${domainX.get(domain)}" y="42" text-anchor="middle" class="domain-label">${escapeHtml(domain)}</text>`)
+    .join("");
+
+  const routePlans = buildFixedSourceRoutePlans(
+    serverIntegrations,
+    positions,
+    nodeMetrics,
+    (row) => row.server_integration_id,
+    (row) => row.from_server,
+    (row) => row.to_server
+  );
+
+  const edges = serverIntegrations
+    .map((row) => {
+      const plan = routePlans.find((item) => item?.row.server_integration_id === row.server_integration_id);
+      if (!plan?.pathData) return "";
+      const direction = normalizeFlowDirection(row.flow_direction);
+      const color = flowDirectionColor(direction);
+      const markerRef = `url(#server-arrow-${direction})`;
+      const markerStart = direction === "input" || direction === "bidirectional" ? ` marker-start="${markerRef}"` : "";
+      const markerEnd = direction === "output" || direction === "bidirectional" ? ` marker-end="${markerRef}"` : "";
+      const selected = state.selectedServerIntegrationId === row.server_integration_id;
+      const diagramClass = normalizeDiagramDefault(row.diagram_default) === "secondary" ? "edge-secondary" : "edge-core";
+      return `
+        <g class="edge ${selected ? "edge-selected" : ""} ${diagramClass} edge-related" data-server-integration-id="${escapeHtml(row.server_integration_id || "")}" tabindex="0">
+          <path d="${plan.pathData}" stroke="${color}" stroke-width="2.6" opacity="0.92" stroke-linejoin="round" stroke-linecap="round"${markerStart}${markerEnd}></path>
+        </g>
+      `;
+    })
+    .join("");
+
+  const nodes = visibleServerNames
+    .map((name) => {
+      const pos = positions.get(name);
+      const server = serversByName.get(name) || {};
+      const metrics = nodeMetrics.get(name);
+      if (!pos || !metrics) return "";
+      const selected = state.selectedServerName === name;
+      return `
+        <g class="node ${selected ? "node-selected" : "node-related"} ${state.editMode ? "node-draggable" : ""}" data-server-name="${escapeHtml(name)}" tabindex="0" transform="translate(${pos.x - metrics.halfWidth}, ${pos.y - 28})">
+          <rect width="${metrics.width}" height="56" rx="6"></rect>
+          <text x="${metrics.halfWidth}" y="25" text-anchor="middle">${escapeHtml(name)}</text>
+          <text class="domain" x="${metrics.halfWidth}" y="42" text-anchor="middle">${escapeHtml(server.server_role || server.product_name || pos.domain)}</text>
+        </g>
+      `;
+    })
+    .join("");
+
+  targetSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  targetSvg.innerHTML = `${defs}${productLabels}${edges}${nodes}`;
+  targetSvg.querySelectorAll("[data-server-integration-id]").forEach((edge) => {
+    const select = () => {
+      state.selectedServerIntegrationId = edge.dataset.serverIntegrationId || "";
+      state.selectedServerName = "";
+      state.detailModalOpen = state.editMode;
+      render();
+    };
+    edge.addEventListener("click", select);
+    edge.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        select();
+      }
+    });
+  });
+  targetSvg.querySelectorAll("[data-server-name]").forEach((node) => {
+    if (state.editMode) {
+      node.addEventListener("pointerdown", (event) => startServerDrag(event, node.dataset.serverName));
+    }
+    const select = () => {
+      if (state.suppressNodeClickName === node.dataset.serverName) {
+        state.suppressNodeClickName = "";
+        return;
+      }
+      state.selectedServerName = state.selectedServerName === node.dataset.serverName ? "" : node.dataset.serverName;
+      state.selectedServerIntegrationId = "";
+      state.detailModalOpen = state.editMode && Boolean(state.selectedServerName);
+      render();
+    };
+    node.addEventListener("click", select);
+    node.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        select();
+      }
+    });
+  });
+}
+
 function renderDetail(integrations) {
+  if (state.viewMode === "server") {
+    const selectedServer = state.servers.find((row) => row.server_name === state.selectedServerName);
+    const selectedLink = state.serverIntegrations.find((row) => row.server_integration_id === state.selectedServerIntegrationId);
+    if (selectedServer) {
+      const relatedCount = state.serverIntegrations.filter(
+        (row) => row.from_server === selectedServer.server_name || row.to_server === selectedServer.server_name
+      ).length;
+      elements.selectedDetail.innerHTML = `
+        <div class="detail-block">
+          <div class="detail-label">サーバ</div>
+          <div class="detail-value">${escapeHtml(selectedServer.server_name)}</div>
+          <div>${escapeHtml(selectedServer.description || "")}</div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">製品 / 役割</div>
+          <div class="chip-row">
+            <span class="chip chip-low">${escapeHtml(selectedServer.product_name || "")}</span>
+            <span class="chip chip-hold">${escapeHtml(selectedServer.server_role || "")}</span>
+          </div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">関連サーバ間連携</div>
+          <div class="detail-value">${escapeHtml(String(relatedCount))} 件</div>
+        </div>
+      `;
+      return;
+    }
+    if (selectedLink) {
+      elements.selectedDetail.innerHTML = `
+        <div class="detail-block">
+          <div class="detail-label">サーバ間連携</div>
+          <div class="detail-value">${escapeHtml(selectedLink.server_integration_id)} / ${escapeHtml(formatServerIntegrationLink(selectedLink))}</div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">方式</div>
+          <div>${escapeHtml([selectedLink.integration_type, selectedLink.protocol, selectedLink.port].filter(Boolean).join(" / "))}</div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-label">目的</div>
+          <div>${escapeHtml(selectedLink.purpose || "")}</div>
+        </div>
+      `;
+      return;
+    }
+    elements.selectedDetail.innerHTML = `
+      <div class="detail-block">
+        <div class="detail-label">サーバ間連携図</div>
+        <div class="detail-value">${escapeHtml(String(state.servers.length))} servers / ${escapeHtml(String(state.serverIntegrations.length))} links</div>
+        <div class="empty-state">編集モードでサーバをドラッグできます。線を選択すると接続元・接続先を変更できます。</div>
+      </div>
+    `;
+    return;
+  }
+
   if (state.selectedComponentName) {
     renderComponentDetail(integrations);
     return;
@@ -926,6 +1041,26 @@ function renderComponentDetail(integrations) {
 }
 
 function renderEditorPanel(integrations) {
+  if (state.viewMode === "server") {
+    const selectedServer = state.servers.find((row) => row.server_name === state.selectedServerName);
+    const selectedLink = state.serverIntegrations.find((row) => row.server_integration_id === state.selectedServerIntegrationId);
+    const body = !state.editMode
+      ? `<div class="empty-state">編集モードを有効にすると、サーバまたはサーバ間連携を編集できます。</div>`
+      : selectedLink
+        ? renderServerIntegrationForm(selectedLink)
+        : selectedServer
+          ? renderServerForm(selectedServer)
+          : `<div class="empty-state">サーバまたはサーバ間連携を選択してください。</div>`;
+    elements.editorPanel.innerHTML = `
+      <div class="detail-block">
+        <div class="detail-label">Edit Mode</div>
+        ${body}
+      </div>
+    `;
+    bindServerEditorEvents();
+    return;
+  }
+
   if (!state.editMode) {
     elements.editorPanel.innerHTML = `
       <div class="detail-block">
@@ -1197,6 +1332,106 @@ function renderCoverageEditorItem(row, index) {
   `;
 }
 
+function renderServerForm(server) {
+  return `
+    <form id="serverEditForm" class="editor-form">
+      <div class="editor-grid">
+        <label>
+          サーバ名
+          <input name="server_name" value="${escapeHtml(server.server_name || "")}" required />
+        </label>
+        <label>
+          製品
+          <select name="product_name">${renderSelectOptions(state.components.map((row) => row.component_name), server.product_name)}</select>
+        </label>
+        <label>
+          役割
+          <input name="server_role" value="${escapeHtml(server.server_role || "")}" />
+        </label>
+        <label>
+          ドメイン
+          <select name="domain">${renderSelectOptions(DOMAIN_ORDER, server.domain || "Operations")}</select>
+        </label>
+        <label>
+          担当
+          <input name="owner" value="${escapeHtml(server.owner || "")}" />
+        </label>
+      </div>
+      <label>
+        説明
+        <textarea name="description">${escapeHtml(server.description || "")}</textarea>
+      </label>
+      <div class="editor-actions">
+        <button type="submit">サーバを保存</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderServerIntegrationForm(integration) {
+  const serverNames = state.servers.map((row) => row.server_name);
+  return `
+    <form id="serverIntegrationEditForm" class="editor-form">
+      <div class="editor-grid">
+        <label>
+          接続元サーバ
+          <select name="from_server">${renderSelectOptions(serverNames, integration.from_server)}</select>
+        </label>
+        <label>
+          接続先サーバ
+          <select name="to_server">${renderSelectOptions(serverNames, integration.to_server)}</select>
+        </label>
+        <label>
+          向き
+          <select name="flow_direction">${renderFlowDirectionOptions(normalizeFlowDirection(integration.flow_direction))}</select>
+        </label>
+        <label>
+          連携種別
+          <input name="integration_type" value="${escapeHtml(integration.integration_type || "")}" />
+        </label>
+        <label>
+          プロトコル
+          <input name="protocol" value="${escapeHtml(integration.protocol || "")}" />
+        </label>
+        <label>
+          ポート
+          <input name="port" value="${escapeHtml(integration.port || "")}" />
+        </label>
+        <label>
+          重要度
+          <select name="criticality">${renderSelectOptions(["High", "Medium", "Low"], integration.criticality || "Medium")}</select>
+        </label>
+        <label>
+          図の扱い
+          <select name="diagram_default">${renderSelectOptions(["core", "secondary"], normalizeDiagramDefault(integration.diagram_default))}</select>
+        </label>
+      </div>
+      <label>
+        目的
+        <textarea name="purpose">${escapeHtml(integration.purpose || "")}</textarea>
+      </label>
+      <label>
+        メモ
+        <textarea name="notes">${escapeHtml(integration.notes || "")}</textarea>
+      </label>
+      <div class="editor-actions">
+        <button type="submit">サーバ間連携を保存</button>
+      </div>
+    </form>
+  `;
+}
+
+function bindServerEditorEvents() {
+  const serverForm = document.getElementById("serverEditForm");
+  if (serverForm) {
+    serverForm.addEventListener("submit", saveServerEdits);
+  }
+  const serverIntegrationForm = document.getElementById("serverIntegrationEditForm");
+  if (serverIntegrationForm) {
+    serverIntegrationForm.addEventListener("submit", saveServerIntegrationEdits);
+  }
+}
+
 function bindEditorPanelEvents() {
   const createForm = document.getElementById("componentCreateForm");
   if (createForm) {
@@ -1372,9 +1607,10 @@ function jumpToMapPanel() {
 
 function renderControlState() {
   elements.editModeButton.textContent = state.editMode ? "編集モード終了" : "編集モード開始";
-  elements.addComponentButton.disabled = !state.editMode;
-  elements.startConnectionButton.disabled = !state.editMode || !state.selectedComponentName;
-  elements.autoLayoutButton.disabled = !state.editMode;
+  const productMode = state.viewMode !== "server";
+  elements.addComponentButton.disabled = !productMode || !state.editMode;
+  elements.startConnectionButton.disabled = !productMode || !state.editMode || !state.selectedComponentName;
+  elements.autoLayoutButton.disabled = !productMode || !state.editMode;
   elements.startConnectionButton.textContent = state.pendingConnectionFrom
     ? `接続先を選択中: ${state.pendingConnectionFrom} (${getFlowDirectionLabel({ flow_direction: state.pendingConnectionDirection })})`
     : "線を引く";
@@ -1387,6 +1623,45 @@ function updatePendingConnectionControls() {
   state.pendingConnectionDirection = normalizeFlowDirection(elements.pendingConnectionDirectionSelect.value);
   state.pendingConnectionDiagramDefault = normalizeDiagramDefault(elements.pendingConnectionDiagramSelect.value);
   renderControlState();
+}
+
+function renderMapMode(enriched, layoutBaseline) {
+  const isServerMode = state.viewMode === "server";
+  elements.mapTitle.textContent = isServerMode ? "サーバ間連携図" : "製品間連携図";
+  elements.mapSvg.setAttribute("aria-label", isServerMode ? "サーバ間連携図" : "システム基盤の製品間連携図");
+  elements.productMapTab.classList.toggle("is-active", !isServerMode);
+  elements.serverMapTab.classList.toggle("is-active", isServerMode);
+  elements.productMapTab.setAttribute("aria-selected", isServerMode ? "false" : "true");
+  elements.serverMapTab.setAttribute("aria-selected", isServerMode ? "true" : "false");
+  elements.mapLegend.classList.toggle("is-server-mode", isServerMode);
+
+  if (isServerMode) {
+    state.detailModalOpen = false;
+    state.selectedComponentName = "";
+    state.selectedIntegrationId = "";
+    renderServerMap();
+    return;
+  }
+
+  renderMap(enriched, layoutBaseline);
+}
+
+function setViewMode(viewMode) {
+  state.viewMode = viewMode === "server" ? "server" : "product";
+  if (state.viewMode === "server") {
+    state.pendingConnectionFrom = "";
+    state.pendingConnectionDirection = "output";
+    state.pendingConnectionDiagramDefault = "core";
+    state.selectedComponentName = "";
+    state.selectedIntegrationId = "";
+    state.editorMode = "";
+    state.detailModalOpen = false;
+  } else {
+    state.selectedServerName = "";
+    state.selectedServerIntegrationId = "";
+  }
+  persistState();
+  render();
 }
 
 function startNodeDrag(event, componentName) {
@@ -1418,6 +1693,45 @@ function startNodeDrag(event, componentName) {
     window.removeEventListener("pointercancel", onUp);
     if (state.dragMoved) {
       state.suppressNodeClickName = componentName;
+      persistState();
+    }
+    state.draggingComponentName = "";
+    state.dragMoved = false;
+  };
+
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+}
+
+function startServerDrag(event, serverName) {
+  if (!state.editMode || state.viewMode !== "server" || !serverName) return;
+  event.preventDefault();
+  state.draggingComponentName = serverName;
+  state.dragMoved = false;
+
+  const onMove = (moveEvent) => {
+    const point = clientPointToSvg(moveEvent);
+    if (!point) return;
+    state.dragMoved = true;
+    state.servers = state.servers.map((row) =>
+      row.server_name === serverName
+        ? {
+            ...row,
+            pos_x: String(Math.round(point.x)),
+            pos_y: String(Math.round(point.y)),
+          }
+        : row
+    );
+    render();
+  };
+
+  const onUp = () => {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+    if (state.dragMoved) {
+      state.suppressNodeClickName = serverName;
       persistState();
     }
     state.draggingComponentName = "";
@@ -1466,7 +1780,7 @@ function toggleConnectionMode() {
 }
 
 function autoArrangeComponents() {
-  const domainX = new Map(DOMAIN_ORDER.map((domain, index) => [domain, 110 + index * 205]));
+  const domainX = new Map(DOMAIN_ORDER.map((domain, index) => [domain, 150 + index * 300]));
   const componentsByDomain = groupBy(
     [...state.components].sort((a, b) => compareComponentsForLayout(a, b)),
     (component) => component.domain || "Operations"
@@ -1479,7 +1793,7 @@ function autoArrangeComponents() {
     const startY = Math.max(120, 330 - group.length * 48);
     return {
       ...component,
-      pos_x: String(domainX.get(domain) || 110),
+      pos_x: String(domainX.get(domain) || 150),
       pos_y: String(Math.round(startY + index * 112)),
     };
   });
@@ -1589,6 +1903,62 @@ function saveIntegrationEdits(event) {
   render();
 }
 
+function saveServerEdits(event) {
+  event.preventDefault();
+  const previousName = state.selectedServerName;
+  const formData = new FormData(event.currentTarget);
+  const nextName = String(formData.get("server_name") || "").trim();
+  if (!previousName || !nextName) return;
+
+  state.servers = state.servers.map((row) =>
+    row.server_name === previousName
+      ? {
+          ...row,
+          server_name: nextName,
+          product_name: String(formData.get("product_name") || row.product_name).trim(),
+          server_role: String(formData.get("server_role") || "").trim(),
+          domain: String(formData.get("domain") || row.domain || "Operations").trim(),
+          owner: String(formData.get("owner") || "").trim(),
+          description: String(formData.get("description") || "").trim(),
+        }
+      : row
+  );
+  state.serverIntegrations = state.serverIntegrations.map((row) => ({
+    ...row,
+    from_server: row.from_server === previousName ? nextName : row.from_server,
+    to_server: row.to_server === previousName ? nextName : row.to_server,
+  }));
+  state.selectedServerName = nextName;
+  persistState();
+  render();
+}
+
+function saveServerIntegrationEdits(event) {
+  event.preventDefault();
+  const integrationId = state.selectedServerIntegrationId;
+  if (!integrationId) return;
+  const formData = new FormData(event.currentTarget);
+  state.serverIntegrations = state.serverIntegrations.map((row) =>
+    row.server_integration_id === integrationId
+      ? {
+          ...row,
+          from_server: String(formData.get("from_server") || row.from_server).trim(),
+          to_server: String(formData.get("to_server") || row.to_server).trim(),
+          flow_direction: normalizeFlowDirection(formData.get("flow_direction") || row.flow_direction),
+          integration_type: String(formData.get("integration_type") || "").trim(),
+          purpose: String(formData.get("purpose") || "").trim(),
+          protocol: String(formData.get("protocol") || "").trim(),
+          port: String(formData.get("port") || "").trim(),
+          criticality: normalizeCriticality(formData.get("criticality") || row.criticality),
+          diagram_default: normalizeDiagramDefault(formData.get("diagram_default") || row.diagram_default),
+          notes: String(formData.get("notes") || "").trim(),
+        }
+      : row
+  );
+  persistState();
+  render();
+}
+
 function savePendingConnectionSettings(event) {
   event.preventDefault();
   const formData = new FormData(event.currentTarget);
@@ -1612,6 +1982,9 @@ function exportJson() {
       components: state.components,
       integrations: state.integrations,
       coverage: state.coverage,
+      servers: state.servers,
+      serverIntegrations: state.serverIntegrations,
+      viewMode: state.viewMode,
     },
     null,
     2
@@ -1629,6 +2002,8 @@ function exportCsvFiles() {
   downloadFile("components.csv", toCsv(state.components), "text/csv");
   window.setTimeout(() => downloadFile("integration_points.csv", toCsv(state.integrations), "text/csv"), 120);
   window.setTimeout(() => downloadFile("coverage_matrix.csv", toCsv(state.coverage), "text/csv"), 240);
+  window.setTimeout(() => downloadFile("servers.csv", toCsv(state.servers), "text/csv"), 360);
+  window.setTimeout(() => downloadFile("server_integration_points.csv", toCsv(state.serverIntegrations), "text/csv"), 480);
 }
 
 async function importJson(event) {
@@ -1640,10 +2015,14 @@ async function importJson(event) {
     components: Array.isArray(parsed.components) ? parsed.components : [],
     integrations: Array.isArray(parsed.integrations) ? parsed.integrations : [],
     coverage: Array.isArray(parsed.coverage) ? parsed.coverage : [],
+    servers: Array.isArray(parsed.servers) ? parsed.servers : parseCsv(sample.servers),
+    serverIntegrations: Array.isArray(parsed.serverIntegrations) ? parsed.serverIntegrations : parseCsv(sample.serverIntegrations),
   });
   state.components = sanitized.components;
   state.integrations = sanitized.integrations;
   state.coverage = sanitized.coverage;
+  state.servers = sanitized.servers;
+  state.serverIntegrations = sanitized.serverIntegrations;
   state.selectedComponentName = "";
   state.selectedIntegrationId = state.integrations[0]?.integration_id || "";
   state.pendingConnectionFrom = "";
@@ -2375,7 +2754,26 @@ function sanitizeLoadedData(data) {
   const coverage = (Array.isArray(data.coverage) ? data.coverage : []).filter((row) =>
     validIntegrationIds.has(String(row.integration_id || "").trim())
   );
-  return { components, integrations, coverage };
+  const servers = (Array.isArray(data.servers) ? data.servers : []).filter((row) =>
+    validComponentNames.has(String(row.product_name || "").trim())
+  );
+  const validServerNames = new Set(servers.map((row) => String(row.server_name || "").trim()).filter(Boolean));
+  const serverIntegrations = (Array.isArray(data.serverIntegrations) ? data.serverIntegrations : []).filter((row) =>
+    validServerNames.has(String(row.from_server || "").trim()) && validServerNames.has(String(row.to_server || "").trim())
+  );
+  return { components, integrations, coverage, servers, serverIntegrations };
+}
+
+function isLegacyServerSample(servers, serverIntegrations) {
+  const legacyNames = new Set(["Splunk SearchHead", "Splunk IndexServer", "Splunk DeploymentServer"]);
+  return (
+    Array.isArray(servers) &&
+    Array.isArray(serverIntegrations) &&
+    servers.length > 0 &&
+    servers.length <= 3 &&
+    serverIntegrations.length <= 3 &&
+    servers.every((row) => legacyNames.has(String(row.server_name || "").trim()))
+  );
 }
 
 function loadSavedState() {
@@ -2390,12 +2788,26 @@ function loadSavedState() {
       components: parsed.components,
       integrations: parsed.integrations,
       coverage: parsed.coverage,
+      servers: Array.isArray(parsed.servers) ? parsed.servers : parseCsv(sample.servers),
+      serverIntegrations: Array.isArray(parsed.serverIntegrations) ? parsed.serverIntegrations : parseCsv(sample.serverIntegrations),
     });
+    const serverDefaultData = isLegacyServerSample(sanitized.servers, sanitized.serverIntegrations)
+      ? sanitizeLoadedData({
+          components: sanitized.components,
+          integrations: sanitized.integrations,
+          coverage: sanitized.coverage,
+          servers: parseCsv(sample.servers),
+          serverIntegrations: parseCsv(sample.serverIntegrations),
+        })
+      : sanitized;
       state = {
         ...state,
         components: sanitized.components,
         integrations: sanitized.integrations,
         coverage: sanitized.coverage,
+        servers: serverDefaultData.servers,
+        serverIntegrations: serverDefaultData.serverIntegrations,
+        viewMode: parsed.viewMode === "server" ? "server" : "product",
         proposalReview: null,
         proposalModalOpen: false,
         selectedIntegrationId: sanitized.integrations[0]?.integration_id || "",
@@ -2421,6 +2833,9 @@ function persistState() {
         components: state.components,
         integrations: state.integrations,
         coverage: state.coverage,
+        servers: state.servers,
+        serverIntegrations: state.serverIntegrations,
+        viewMode: state.viewMode,
       })
     );
   } catch (error) {
@@ -2432,7 +2847,13 @@ function renderDetailModalState() {
   const shouldOpen =
     !state.pendingConnectionFrom &&
     state.detailModalOpen &&
-    Boolean(state.selectedComponentName || state.selectedIntegrationId || state.editorMode);
+    Boolean(
+      state.selectedComponentName ||
+        state.selectedIntegrationId ||
+        state.selectedServerName ||
+        state.selectedServerIntegrationId ||
+        state.editorMode
+    );
   elements.detailModal.classList.toggle("is-open", shouldOpen);
   elements.detailModal.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
 }
@@ -2474,6 +2895,204 @@ function getNodeGuard(position, metrics, padding) {
     top: position.y - metrics.halfHeight - padding,
     bottom: position.y + metrics.halfHeight + padding,
   };
+}
+
+function buildFixedSourceRoutePlans(rows, positions, nodeMetrics, getId, getFromName, getToName) {
+  const routePlans = rows.map((row, index) => {
+    const id = getId(row);
+    const fromName = getFromName(row);
+    const toName = getToName(row);
+    const from = positions.get(fromName);
+    const to = positions.get(toName);
+    const fromMetrics = nodeMetrics.get(fromName);
+    const toMetrics = nodeMetrics.get(toName);
+    if (!id || !from || !to || !fromMetrics || !toMetrics) return null;
+
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const sourceDirection = dx >= 0 ? 1 : -1;
+    const targetSide = pickNearestTargetSide(from, to, fromMetrics, toMetrics, sourceDirection);
+    return {
+      id,
+      row,
+      index,
+      fromName,
+      toName,
+      from,
+      to,
+      fromMetrics,
+      toMetrics,
+      sourceDirection,
+      fromSide: sourceDirection > 0 ? "right" : "left",
+      toSide: targetSide,
+      targetDirection: targetSide === "right" || targetSide === "bottom" ? 1 : -1,
+      targetOrientation: targetSide === "left" || targetSide === "right" ? "horizontal" : "vertical",
+      sortDistance: Math.abs(dx) + Math.abs(dy),
+    };
+  });
+
+  const endpointGroups = new Map();
+  routePlans.forEach((plan) => {
+    if (!plan) return;
+    const fromKey = `${plan.fromName}:${plan.fromSide}`;
+    const toKey = `${plan.toName}:${plan.toSide}`;
+    if (!endpointGroups.has(fromKey)) endpointGroups.set(fromKey, []);
+    if (!endpointGroups.has(toKey)) endpointGroups.set(toKey, []);
+    endpointGroups.get(fromKey).push({ plan, anchor: "from", peerX: plan.to.x, peerY: plan.to.y });
+    endpointGroups.get(toKey).push({ plan, anchor: "to", peerX: plan.from.x, peerY: plan.from.y });
+  });
+
+  const endpointOffsets = new Map();
+  endpointGroups.forEach((items, groupKey) => {
+    const side = groupKey.split(":").at(-1);
+    const axis = side === "left" || side === "right" ? "peerY" : "peerX";
+    items
+      .sort((a, b) => a[axis] - b[axis] || a.peerX - b.peerX || a.peerY - b.peerY || a.plan.id.localeCompare(b.plan.id, "ja"))
+      .forEach((item, itemIndex) => {
+        endpointOffsets.set(`${item.plan.id}:${item.anchor}`, (itemIndex - (items.length - 1) / 2) * 12);
+      });
+  });
+
+  const occupiedHorizontalLanes = [];
+  const occupiedVerticalLanes = [];
+  routePlans
+    .filter(Boolean)
+    .sort((a, b) => b.sortDistance - a.sortDistance || a.index - b.index)
+    .forEach((plan) => {
+      const sourceOffset = endpointOffsets.get(`${plan.id}:from`) || 0;
+      const targetOffset = endpointOffsets.get(`${plan.id}:to`) || 0;
+      const startX = plan.from.x + plan.fromMetrics.halfWidth * plan.sourceDirection;
+      const startY = plan.from.y + sourceOffset;
+      const sourceStubX = startX + plan.sourceDirection * 22;
+      const sourceGuard = getNodeGuard(plan.from, plan.fromMetrics, 22);
+      const targetGuard = getNodeGuard(plan.to, plan.toMetrics, 22);
+
+      if (plan.targetOrientation === "horizontal") {
+        const targetDirection = plan.toSide === "right" ? 1 : -1;
+        const endX = plan.to.x + plan.toMetrics.halfWidth * targetDirection;
+        const endY = plan.to.y + targetOffset;
+        const baseLaneX = (sourceStubX + endX) / 2 + plan.sourceDirection * 24;
+        const topY = Math.min(startY, endY) - 18;
+        const bottomY = Math.max(startY, endY) + 18;
+        const laneX = pickVerticalLane(baseLaneX, topY, bottomY, sourceGuard, targetGuard, plan.fromSide, plan.toSide, occupiedVerticalLanes);
+        occupiedVerticalLanes.push({ lane: laneX, rangeStart: topY, rangeEnd: bottomY });
+        plan.labelX = laneX;
+        plan.labelY = topY + (bottomY - topY) / 2 - 10;
+        plan.pathData = [
+          `M ${startX} ${startY}`,
+          `L ${sourceStubX} ${startY}`,
+          `L ${laneX} ${startY}`,
+          `L ${laneX} ${endY}`,
+          `L ${endX + targetDirection * 18} ${endY}`,
+          `L ${endX} ${endY}`,
+        ].join(" ");
+        return;
+      }
+
+      const targetDirection = plan.toSide === "bottom" ? 1 : -1;
+      const endX = plan.to.x + targetOffset;
+      const endY = plan.to.y + plan.toMetrics.halfHeight * targetDirection;
+      const baseLaneY = endY + targetDirection * (42 + (plan.index % 3) * 18);
+      const leftX = Math.min(sourceStubX, endX) - 18;
+      const rightX = Math.max(sourceStubX, endX) + 18;
+      const laneY = pickHorizontalLane(baseLaneY, leftX, rightX, targetGuard, plan.toSide, occupiedHorizontalLanes);
+      occupiedHorizontalLanes.push({ lane: laneY, rangeStart: leftX, rangeEnd: rightX });
+      plan.labelX = leftX + (rightX - leftX) / 2;
+      plan.labelY = laneY - 10;
+      plan.pathData = [
+        `M ${startX} ${startY}`,
+        `L ${sourceStubX} ${startY}`,
+        `L ${sourceStubX} ${laneY}`,
+        `L ${endX} ${laneY}`,
+        `L ${endX} ${endY + targetDirection * 18}`,
+        `L ${endX} ${endY}`,
+      ].join(" ");
+    });
+
+  return routePlans;
+}
+
+function pickNearestTargetSide(from, to, fromMetrics, toMetrics, sourceDirection) {
+  const source = {
+    x: from.x + fromMetrics.halfWidth * sourceDirection + sourceDirection * 22,
+    y: from.y,
+  };
+  const left = to.x - toMetrics.halfWidth;
+  const right = to.x + toMetrics.halfWidth;
+  const top = to.y - toMetrics.halfHeight;
+  const bottom = to.y + toMetrics.halfHeight;
+  const candidates = [
+    { side: "left", x: left, y: clamp(source.y, top, bottom) },
+    { side: "right", x: right, y: clamp(source.y, top, bottom) },
+    { side: "top", x: clamp(source.x, left, right), y: top },
+    { side: "bottom", x: clamp(source.x, left, right), y: bottom },
+  ];
+  return candidates
+    .map((candidate) => ({
+      ...candidate,
+      distance: Math.abs(source.x - candidate.x) + Math.abs(source.y - candidate.y) + targetSidePenalty(candidate.side, from, to),
+    }))
+    .sort((a, b) => a.distance - b.distance || targetSidePriority(a.side) - targetSidePriority(b.side))[0].side;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function targetSidePenalty(side, from, to) {
+  if (side === "top" && from.y > to.y) return 18;
+  if (side === "bottom" && from.y < to.y) return 18;
+  if (side === "left" && from.x > to.x) return 18;
+  if (side === "right" && from.x < to.x) return 18;
+  return 0;
+}
+
+function targetSidePriority(side) {
+  return { bottom: 0, top: 1, left: 2, right: 3 }[side] ?? 4;
+}
+
+function pickVerticalLane(baseLaneX, topY, bottomY, sourceGuard, targetGuard, fromSide, toSide, occupiedVerticalLanes) {
+  const candidateOffsets = [0, 24, -24, 48, -48, 72, -72, 96, -96];
+  const outsideSource = fromSide === "left"
+    ? (candidateLaneX) => candidateLaneX < sourceGuard.left
+    : (candidateLaneX) => candidateLaneX > sourceGuard.right;
+  const outsideTarget = toSide === "left"
+    ? (candidateLaneX) => candidateLaneX < targetGuard.left
+    : (candidateLaneX) => candidateLaneX > targetGuard.right;
+
+  for (const candidateOffset of candidateOffsets) {
+    const laneX = baseLaneX + candidateOffset;
+    const collision = occupiedVerticalLanes.some(
+      (lane) => Math.abs(lane.lane - laneX) < 18 && !(bottomY < lane.rangeStart || topY > lane.rangeEnd)
+    );
+    if (!collision && outsideSource(laneX) && outsideTarget(laneX)) {
+      return laneX;
+    }
+  }
+
+  if (fromSide === "right" || toSide === "right") {
+    return Math.max(sourceGuard.right, targetGuard.right) + 24;
+  }
+  return Math.min(sourceGuard.left, targetGuard.left) - 24;
+}
+
+function pickHorizontalLane(baseLaneY, leftX, rightX, targetGuard, toSide, occupiedHorizontalLanes) {
+  const candidateOffsets = [0, 24, -24, 48, -48, 72, -72, 96, -96];
+  const outsideTarget = toSide === "top"
+    ? (candidateLaneY) => candidateLaneY < targetGuard.top
+    : (candidateLaneY) => candidateLaneY > targetGuard.bottom;
+
+  for (const candidateOffset of candidateOffsets) {
+    const laneY = baseLaneY + candidateOffset;
+    const collision = occupiedHorizontalLanes.some(
+      (lane) => Math.abs(lane.lane - laneY) < 18 && !(rightX < lane.rangeStart || leftX > lane.rangeEnd)
+    );
+    if (!collision && outsideTarget(laneY)) {
+      return laneY;
+    }
+  }
+
+  return toSide === "top" ? targetGuard.top - 24 : targetGuard.bottom + 24;
 }
 
 function getDiagramDefault(integration) {
@@ -2678,6 +3297,10 @@ function getFlowArrowSymbol(row) {
 
 function formatIntegrationLink(row) {
   return `${row.from_component} ${getFlowArrowSymbol(row)} ${row.to_component}`;
+}
+
+function formatServerIntegrationLink(row) {
+  return `${row.from_server} ${getFlowArrowSymbol(row)} ${row.to_server}`;
 }
 
 function summarizeDepth(rows) {
