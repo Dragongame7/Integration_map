@@ -202,6 +202,7 @@ const elements = {
   sampleButton: document.getElementById("sampleButton"),
   editModeButton: document.getElementById("editModeButton"),
   addComponentButton: document.getElementById("addComponentButton"),
+  addServerButton: document.getElementById("addServerButton"),
   startConnectionButton: document.getElementById("startConnectionButton"),
   autoLayoutButton: document.getElementById("autoLayoutButton"),
   exportJsonButton: document.getElementById("exportJsonButton"),
@@ -248,6 +249,7 @@ const elements = {
 elements.sampleButton.addEventListener("click", () => loadSample(false));
 elements.editModeButton.addEventListener("click", toggleEditMode);
 elements.addComponentButton.addEventListener("click", beginAddComponent);
+elements.addServerButton.addEventListener("click", beginAddServer);
 elements.startConnectionButton.addEventListener("click", toggleConnectionMode);
 elements.autoLayoutButton.addEventListener("click", autoArrangeComponents);
 elements.exportJsonButton.addEventListener("click", exportJson);
@@ -715,6 +717,8 @@ function renderMap(integrations, baselineIntegrations = integrations) {
             state.pendingConnectionDirection = "output";
             state.pendingConnectionDiagramDefault = "core";
             state.selectedComponentName = "";
+            state.selectedIntegrationId = "";
+            state.detailModalOpen = false;
           }
         } else {
           state.selectedComponentName = state.selectedComponentName === name ? "" : name;
@@ -847,13 +851,36 @@ function renderServerMap(serverIntegrations = state.serverIntegrations, servers 
       node.addEventListener("pointerdown", (event) => startServerDrag(event, node.dataset.serverName));
     }
     const select = () => {
-      if (state.suppressNodeClickName === node.dataset.serverName) {
+      const name = node.dataset.serverName;
+      if (state.suppressNodeClickName === name) {
         state.suppressNodeClickName = "";
         return;
       }
-      state.selectedServerName = state.selectedServerName === node.dataset.serverName ? "" : node.dataset.serverName;
-      state.selectedServerIntegrationId = "";
-      state.detailModalOpen = state.editMode && Boolean(state.selectedServerName);
+      if (state.editMode && state.pendingConnectionFrom) {
+        if (state.pendingConnectionFrom === name) {
+          state.pendingConnectionFrom = "";
+          state.pendingConnectionDirection = "output";
+          state.pendingConnectionDiagramDefault = "core";
+        } else {
+          createServerIntegrationBetween(
+            state.pendingConnectionFrom,
+            name,
+            state.pendingConnectionDirection,
+            state.pendingConnectionDiagramDefault
+          );
+          state.pendingConnectionFrom = "";
+          state.pendingConnectionDirection = "output";
+          state.pendingConnectionDiagramDefault = "core";
+          state.selectedServerName = "";
+          state.selectedServerIntegrationId = "";
+          state.detailModalOpen = false;
+        }
+      } else {
+        state.selectedServerName = state.selectedServerName === name ? "" : name;
+        state.selectedServerIntegrationId = "";
+      }
+      state.editorMode = "";
+      state.detailModalOpen = !state.pendingConnectionFrom && state.editMode && Boolean(state.selectedServerName || state.selectedServerIntegrationId);
       render();
     };
     node.addEventListener("click", select);
@@ -1046,6 +1073,8 @@ function renderEditorPanel(integrations) {
     const selectedLink = state.serverIntegrations.find((row) => row.server_integration_id === state.selectedServerIntegrationId);
     const body = !state.editMode
       ? `<div class="empty-state">編集モードを有効にすると、サーバまたはサーバ間連携を編集できます。</div>`
+      : state.editorMode === "new-server"
+        ? renderServerForm(null)
       : selectedLink
         ? renderServerIntegrationForm(selectedLink)
         : selectedServer
@@ -1130,7 +1159,7 @@ function renderComponentForm(component) {
       </label>
       <div class="editor-actions">
         <button type="submit">${isNew ? "製品を追加" : "製品を保存"}</button>
-        ${isNew ? `<button type="button" id="cancelComponentCreateButton">閉じる</button>` : `<button type="button" id="componentConnectButton">この製品から線を引く</button><button type="button" id="resetComponentPositionButton">自動配置へ戻す</button>`}
+        ${isNew ? `<button type="button" id="cancelComponentCreateButton">閉じる</button>` : `<button type="button" id="componentConnectButton">この製品から線を引く</button><button type="button" id="resetComponentPositionButton">自動配置へ戻す</button><button type="button" id="deleteComponentButton">製品を削除</button>`}
       </div>
     </form>
   `;
@@ -1246,6 +1275,7 @@ function renderIntegrationForm(integration) {
       <div class="editor-actions">
         <button type="submit">結合点を保存</button>
         <button type="button" id="addCoverageRowButton">観点を追加</button>
+        <button type="button" id="deleteIntegrationButton">結合点を削除</button>
       </div>
     </form>
     <form id="coverageEditForm" class="editor-form">
@@ -1333,36 +1363,46 @@ function renderCoverageEditorItem(row, index) {
 }
 
 function renderServerForm(server) {
+  const isNew = !server;
+  const source = server || {
+    server_name: "",
+    product_name: state.components[0]?.component_name || "",
+    server_role: "",
+    domain: "Operations",
+    owner: "",
+    description: "",
+  };
   return `
-    <form id="serverEditForm" class="editor-form">
+    <form id="${isNew ? "serverCreateForm" : "serverEditForm"}" class="editor-form">
       <div class="editor-grid">
         <label>
           サーバ名
-          <input name="server_name" value="${escapeHtml(server.server_name || "")}" required />
+          <input name="server_name" value="${escapeHtml(source.server_name || "")}" required />
         </label>
         <label>
           製品
-          <select name="product_name">${renderSelectOptions(state.components.map((row) => row.component_name), server.product_name)}</select>
+          <select name="product_name">${renderSelectOptions(state.components.map((row) => row.component_name), source.product_name)}</select>
         </label>
         <label>
           役割
-          <input name="server_role" value="${escapeHtml(server.server_role || "")}" />
+          <input name="server_role" value="${escapeHtml(source.server_role || "")}" />
         </label>
         <label>
           ドメイン
-          <select name="domain">${renderSelectOptions(DOMAIN_ORDER, server.domain || "Operations")}</select>
+          <select name="domain">${renderSelectOptions(DOMAIN_ORDER, source.domain || "Operations")}</select>
         </label>
         <label>
           担当
-          <input name="owner" value="${escapeHtml(server.owner || "")}" />
+          <input name="owner" value="${escapeHtml(source.owner || "")}" />
         </label>
       </div>
       <label>
         説明
-        <textarea name="description">${escapeHtml(server.description || "")}</textarea>
+        <textarea name="description">${escapeHtml(source.description || "")}</textarea>
       </label>
       <div class="editor-actions">
-        <button type="submit">サーバを保存</button>
+        <button type="submit">${isNew ? "サーバを追加" : "サーバを保存"}</button>
+        ${isNew ? `<button type="button" id="cancelServerCreateButton">閉じる</button>` : `<button type="button" id="deleteServerButton">サーバを削除</button>`}
       </div>
     </form>
   `;
@@ -1416,19 +1456,27 @@ function renderServerIntegrationForm(integration) {
       </label>
       <div class="editor-actions">
         <button type="submit">サーバ間連携を保存</button>
+        <button type="button" id="deleteServerIntegrationButton">サーバ間連携を削除</button>
       </div>
     </form>
   `;
 }
 
 function bindServerEditorEvents() {
+  const serverCreateForm = document.getElementById("serverCreateForm");
+  if (serverCreateForm) {
+    serverCreateForm.addEventListener("submit", saveNewServer);
+    document.getElementById("cancelServerCreateButton")?.addEventListener("click", cancelServerCreate);
+  }
   const serverForm = document.getElementById("serverEditForm");
   if (serverForm) {
     serverForm.addEventListener("submit", saveServerEdits);
+    document.getElementById("deleteServerButton")?.addEventListener("click", deleteSelectedServer);
   }
   const serverIntegrationForm = document.getElementById("serverIntegrationEditForm");
   if (serverIntegrationForm) {
     serverIntegrationForm.addEventListener("submit", saveServerIntegrationEdits);
+    document.getElementById("deleteServerIntegrationButton")?.addEventListener("click", deleteSelectedServerIntegration);
   }
 }
 
@@ -1460,12 +1508,14 @@ function bindEditorPanelEvents() {
       render();
     });
     document.getElementById("resetComponentPositionButton")?.addEventListener("click", resetSelectedComponentPosition);
+    document.getElementById("deleteComponentButton")?.addEventListener("click", deleteSelectedComponent);
   }
 
   const integrationForm = document.getElementById("integrationEditForm");
   if (integrationForm) {
     integrationForm.addEventListener("submit", saveIntegrationEdits);
     document.getElementById("addCoverageRowButton")?.addEventListener("click", addCoverageRowToSelectedIntegration);
+    document.getElementById("deleteIntegrationButton")?.addEventListener("click", deleteSelectedIntegration);
   }
 
   const coverageForm = document.getElementById("coverageEditForm");
@@ -1608,8 +1658,13 @@ function jumpToMapPanel() {
 function renderControlState() {
   elements.editModeButton.textContent = state.editMode ? "編集モード終了" : "編集モード開始";
   const productMode = state.viewMode !== "server";
+  const serverMode = state.viewMode === "server";
   elements.addComponentButton.disabled = !productMode || !state.editMode;
-  elements.startConnectionButton.disabled = !productMode || !state.editMode || !state.selectedComponentName;
+  elements.addServerButton.hidden = !serverMode;
+  elements.addServerButton.disabled = !serverMode || !state.editMode;
+  const canStartProductConnection = productMode && state.editMode && Boolean(state.selectedComponentName);
+  const canStartServerConnection = serverMode && state.editMode && Boolean(state.selectedServerName);
+  elements.startConnectionButton.disabled = !(canStartProductConnection || canStartServerConnection);
   elements.autoLayoutButton.disabled = !productMode || !state.editMode;
   elements.startConnectionButton.textContent = state.pendingConnectionFrom
     ? `接続先を選択中: ${state.pendingConnectionFrom} (${getFlowDirectionLabel({ flow_direction: state.pendingConnectionDirection })})`
@@ -1636,7 +1691,6 @@ function renderMapMode(enriched, layoutBaseline) {
   elements.mapLegend.classList.toggle("is-server-mode", isServerMode);
 
   if (isServerMode) {
-    state.detailModalOpen = false;
     state.selectedComponentName = "";
     state.selectedIntegrationId = "";
     renderServerMap();
@@ -1659,6 +1713,9 @@ function setViewMode(viewMode) {
   } else {
     state.selectedServerName = "";
     state.selectedServerIntegrationId = "";
+    if (state.editorMode === "new-server") {
+      state.editorMode = "";
+    }
   }
   persistState();
   render();
@@ -1706,6 +1763,7 @@ function startNodeDrag(event, componentName) {
 
 function startServerDrag(event, serverName) {
   if (!state.editMode || state.viewMode !== "server" || !serverName) return;
+  if (state.pendingConnectionFrom) return;
   event.preventDefault();
   state.draggingComponentName = serverName;
   state.dragMoved = false;
@@ -1762,8 +1820,35 @@ function beginAddComponent() {
   render();
 }
 
+function beginAddServer() {
+  if (!state.editMode || state.viewMode !== "server") return;
+  state.selectedServerName = "";
+  state.selectedServerIntegrationId = "";
+  state.editorMode = "new-server";
+  state.detailModalOpen = true;
+  render();
+}
+
 function toggleConnectionMode() {
-  if (!state.editMode || !state.selectedComponentName) return;
+  if (!state.editMode) return;
+  if (state.viewMode === "server") {
+    if (!state.selectedServerName) return;
+    if (state.pendingConnectionFrom) {
+      state.pendingConnectionFrom = "";
+      state.pendingConnectionDirection = "output";
+      state.pendingConnectionDiagramDefault = "core";
+      state.detailModalOpen = true;
+    } else {
+      state.pendingConnectionFrom = state.selectedServerName;
+      state.pendingConnectionDirection = "output";
+      state.pendingConnectionDiagramDefault = "core";
+      state.detailModalOpen = false;
+    }
+    state.editorMode = "";
+    render();
+    return;
+  }
+  if (!state.selectedComponentName) return;
   if (state.pendingConnectionFrom) {
     state.pendingConnectionFrom = "";
     state.pendingConnectionDirection = "output";
@@ -1854,6 +1939,47 @@ function saveComponentEdits(event) {
   render();
 }
 
+function deleteSelectedComponent() {
+  const componentName = state.selectedComponentName;
+  if (!componentName) return;
+
+  const integrationIds = state.integrations
+    .filter((row) => row.from_component === componentName || row.to_component === componentName)
+    .map((row) => row.integration_id);
+  const serversToDelete = state.servers.filter((row) => row.product_name === componentName).map((row) => row.server_name);
+  const serverIntegrationCount = state.serverIntegrations.filter(
+    (row) => serversToDelete.includes(row.from_server) || serversToDelete.includes(row.to_server)
+  ).length;
+  const coverageCount = state.coverage.filter((row) => integrationIds.includes(row.integration_id)).length;
+  const confirmed = window.confirm(
+    [
+      `製品「${componentName}」を削除します。`,
+      `製品間連携 ${integrationIds.length} 件`,
+      `観点 ${coverageCount} 件`,
+      `サーバ ${serversToDelete.length} 件`,
+      `サーバ間連携 ${serverIntegrationCount} 件`,
+      "を合わせて削除します。続行しますか？",
+    ].join("\n")
+  );
+  if (!confirmed) return;
+
+  state.components = state.components.filter((row) => row.component_name !== componentName);
+  state.integrations = state.integrations.filter((row) => !integrationIds.includes(row.integration_id));
+  state.coverage = state.coverage.filter((row) => !integrationIds.includes(row.integration_id));
+  state.servers = state.servers.filter((row) => row.product_name !== componentName);
+  state.serverIntegrations = state.serverIntegrations.filter(
+    (row) => !serversToDelete.includes(row.from_server) && !serversToDelete.includes(row.to_server)
+  );
+  state.selectedComponentName = "";
+  state.selectedIntegrationId = "";
+  state.editorMode = "";
+  state.detailModalOpen = false;
+  hydrateOwnerFilter();
+  hydrateIntegrationTypeFilter();
+  persistState();
+  render();
+}
+
 function resetSelectedComponentPosition() {
   if (!state.selectedComponentName) return;
   state.components = state.components.map((row) =>
@@ -1903,12 +2029,35 @@ function saveIntegrationEdits(event) {
   render();
 }
 
+function deleteSelectedIntegration() {
+  const integrationId = state.selectedIntegrationId;
+  if (!integrationId) return;
+  const coverageCount = state.coverage.filter((row) => row.integration_id === integrationId).length;
+  const confirmed = window.confirm(
+    [`結合点「${integrationId}」を削除します。`, `観点 ${coverageCount} 件も削除します。`, "続行しますか？"].join("\n")
+  );
+  if (!confirmed) return;
+
+  state.integrations = state.integrations.filter((row) => row.integration_id !== integrationId);
+  state.coverage = state.coverage.filter((row) => row.integration_id !== integrationId);
+  state.selectedIntegrationId = "";
+  state.detailModalOpen = false;
+  hydrateOwnerFilter();
+  hydrateIntegrationTypeFilter();
+  persistState();
+  render();
+}
+
 function saveServerEdits(event) {
   event.preventDefault();
   const previousName = state.selectedServerName;
   const formData = new FormData(event.currentTarget);
   const nextName = String(formData.get("server_name") || "").trim();
   if (!previousName || !nextName) return;
+  if (nextName !== previousName && state.servers.some((row) => row.server_name === nextName)) {
+    window.alert("同じサーバ名が既に存在します。");
+    return;
+  }
 
   state.servers = state.servers.map((row) =>
     row.server_name === previousName
@@ -1930,6 +2079,67 @@ function saveServerEdits(event) {
   }));
   state.selectedServerName = nextName;
   persistState();
+  render();
+}
+
+function deleteSelectedServer() {
+  const serverName = state.selectedServerName;
+  if (!serverName) return;
+  const relatedServerIntegrationCount = state.serverIntegrations.filter(
+    (row) => row.from_server === serverName || row.to_server === serverName
+  ).length;
+  const confirmed = window.confirm(
+    [`サーバ「${serverName}」を削除します。`, `サーバ間連携 ${relatedServerIntegrationCount} 件も削除します。`, "続行しますか？"].join("\n")
+  );
+  if (!confirmed) return;
+
+  state.servers = state.servers.filter((row) => row.server_name !== serverName);
+  state.serverIntegrations = state.serverIntegrations.filter(
+    (row) => row.from_server !== serverName && row.to_server !== serverName
+  );
+  state.selectedServerName = "";
+  state.selectedServerIntegrationId = "";
+  state.detailModalOpen = false;
+  persistState();
+  render();
+}
+
+function saveNewServer(event) {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  const serverName = String(formData.get("server_name") || "").trim();
+  if (!serverName) return;
+  if (state.servers.some((row) => row.server_name === serverName)) {
+    window.alert("同じサーバ名が既に存在します。");
+    return;
+  }
+
+  state.servers = [
+    ...state.servers,
+    {
+      server_id: nextId("SRV", state.servers.map((row) => row.server_id)),
+      server_name: serverName,
+      product_name: String(formData.get("product_name") || "").trim(),
+      server_role: String(formData.get("server_role") || "").trim(),
+      domain: String(formData.get("domain") || "Operations").trim(),
+      environment: "IT",
+      owner: String(formData.get("owner") || "").trim(),
+      description: String(formData.get("description") || "").trim(),
+      pos_x: "",
+      pos_y: "",
+    },
+  ];
+  state.selectedServerName = serverName;
+  state.selectedServerIntegrationId = "";
+  state.editorMode = "";
+  state.detailModalOpen = true;
+  persistState();
+  render();
+}
+
+function cancelServerCreate() {
+  state.editorMode = "";
+  state.detailModalOpen = true;
   render();
 }
 
@@ -1955,6 +2165,19 @@ function saveServerIntegrationEdits(event) {
         }
       : row
   );
+  persistState();
+  render();
+}
+
+function deleteSelectedServerIntegration() {
+  const integrationId = state.selectedServerIntegrationId;
+  if (!integrationId) return;
+  const confirmed = window.confirm(`サーバ間連携「${integrationId}」を削除します。続行しますか？`);
+  if (!confirmed) return;
+
+  state.serverIntegrations = state.serverIntegrations.filter((row) => row.server_integration_id !== integrationId);
+  state.selectedServerIntegrationId = "";
+  state.detailModalOpen = false;
   persistState();
   render();
 }
@@ -2577,8 +2800,27 @@ function createIntegrationBetween(fromComponent, toComponent, flowDirection = "o
   state.coverage = [...state.coverage, ...createDefaultCoverageRows(integrationId, integration.owner)];
   hydrateOwnerFilter();
   hydrateIntegrationTypeFilter();
-  state.selectedIntegrationId = integrationId;
-  state.detailModalOpen = true;
+  persistState();
+}
+
+function createServerIntegrationBetween(fromServer, toServer, flowDirection = "output", diagramDefault = "core") {
+  const integrationId = nextId("SINT", state.serverIntegrations.map((row) => row.server_integration_id));
+  const fromRow = state.servers.find((row) => row.server_name === fromServer);
+  const toRow = state.servers.find((row) => row.server_name === toServer);
+  const integration = {
+    server_integration_id: integrationId,
+    from_server: fromServer,
+    to_server: toServer,
+    flow_direction: normalizeFlowDirection(flowDirection),
+    integration_type: "未分類",
+    purpose: `${fromServer} と ${toServer} の仮連携`,
+    protocol: "TCP",
+    port: "443",
+    criticality: "Medium",
+    diagram_default: normalizeDiagramDefault(diagramDefault),
+    notes: `GUIで追加した仮連携 (${fromRow?.product_name || ""} -> ${toRow?.product_name || ""})`.trim(),
+  };
+  state.serverIntegrations = [...state.serverIntegrations, integration];
   persistState();
 }
 
@@ -3021,6 +3263,13 @@ function pickNearestTargetSide(from, to, fromMetrics, toMetrics, sourceDirection
   const right = to.x + toMetrics.halfWidth;
   const top = to.y - toMetrics.halfHeight;
   const bottom = to.y + toMetrics.halfHeight;
+  const verticalMiss = source.y < top ? top - source.y : source.y > bottom ? source.y - bottom : 0;
+  if (source.x <= left && verticalMiss <= 36) {
+    return "left";
+  }
+  if (source.x >= right && verticalMiss <= 36) {
+    return "right";
+  }
   const candidates = [
     { side: "left", x: left, y: clamp(source.y, top, bottom) },
     { side: "right", x: right, y: clamp(source.y, top, bottom) },
